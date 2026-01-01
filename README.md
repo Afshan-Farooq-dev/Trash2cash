@@ -10,34 +10,40 @@
 ## 🌟 Key Features
 
 ### 🤖 AI-Powered Waste Classification
+
 - Real-time waste detection and classification using TensorFlow/Keras
 - Automated compartment selection (Recyclable, Non-Recyclable, Organic)
 - Computer vision with OpenCV for image processing
 
 ### 📱 QR Code Authentication
+
 - Secure user identification via QR code scanning
 - Mobile app integration ready
 - Session-based disposal tracking
 
 ### 🎁 Rewards & Gamification
+
 - Points system for waste disposal
 - Redeemable rewards catalog
 - User leaderboards and achievements
 - Real-time point tracking
 
 ### 🗺️ Smart Bin Locator
+
 - Interactive map using Leaflet.js (Free - No API costs!)
 - Find nearby bins with capacity status
 - One-tap navigation to bin locations
 - Real-time bin fill level monitoring
 
 ### 📊 Admin Dashboard
+
 - Real-time monitoring of all smart bins
 - Waste disposal analytics
 - User management and reward redemption approval
 - Issue reporting and tracking system
 
 ### 🔔 Notifications System
+
 - Real-time alerts for disposal confirmations
 - Reward redemption updates
 - Bin maintenance notifications
@@ -45,6 +51,7 @@
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **Framework:** Django 5.1+
 - **Database:** SQLite3 (Development) / PostgreSQL (Production Ready)
 - **AI/ML:** TensorFlow 2.15+, Keras 3.0+
@@ -52,12 +59,14 @@
 - **QR Processing:** pyzbar
 
 ### Frontend
+
 - **Templates:** Django Templates
 - **CSS Framework:** Bootstrap 5.3.7
 - **Maps:** Leaflet.js (Free alternative to Google Maps)
 - **JavaScript:** Vanilla JS with AJAX
 
 ### IoT Hardware
+
 - **Microcontroller:** ESP32-CAM
 - **Sensors:** Ultrasonic (HC-SR04), Load Cells
 - **Camera:** ESP32 Built-in Camera Module
@@ -66,6 +75,7 @@
 ## 📦 Installation
 
 ### Prerequisites
+
 - Python 3.10 or higher
 - pip (Python package manager)
 - Git
@@ -73,17 +83,20 @@
 ### Setup Instructions
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Afshan-Farooq-dev/Trash2cash.git
    cd Trash2cash
    ```
 
 2. **Create virtual environment**
+
    ```bash
    python -m venv .venv
    ```
 
 3. **Activate virtual environment**
+
    - Windows:
      ```powershell
      .venv\Scripts\Activate.ps1
@@ -94,35 +107,41 @@
      ```
 
 4. **Install dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 5. **Environment Configuration**
+
    ```bash
    # Copy the example environment file
    cp .env.example .env
-   
+
    # Edit .env and add your configuration
    # (SECRET_KEY, DEBUG, etc.)
    ```
 
 6. **Run migrations**
+
    ```bash
    python manage.py migrate
    ```
 
 7. **Create superuser (Admin)**
+
    ```bash
    python manage.py createsuperuser
    ```
 
 8. **Create test bins (Optional)**
+
    ```bash
    python create_lahore_bins.py
    ```
 
 9. **Run the development server**
+
    ```bash
    python manage.py runserver
    ```
@@ -134,6 +153,7 @@
 ## 🚀 Quick Start Scripts
 
 ### Windows PowerShell
+
 ```powershell
 # Quick setup and run
 .\quickstart.ps1
@@ -173,6 +193,7 @@ Trash2cash/
 ## 🎮 Usage
 
 ### For Users
+
 1. **Register/Login** - Create account with CNIC verification
 2. **Find Bins** - Use the interactive map to locate nearby smart bins
 3. **Dispose Waste** - Scan your QR code at the bin, place waste in front of camera
@@ -180,6 +201,7 @@ Trash2cash/
 5. **Redeem Rewards** - Exchange points for real rewards in the store
 
 ### For Admins
+
 1. **Login to Admin Panel** - `/admin/`
 2. **Monitor Bins** - Real-time bin status and fill levels
 3. **Manage Users** - View user profiles and transaction history
@@ -189,6 +211,7 @@ Trash2cash/
 ## 🔌 API Endpoints
 
 ### Mobile API
+
 ```
 POST   /api/mobile/register/          # User registration
 POST   /api/mobile/login/             # User authentication
@@ -200,6 +223,7 @@ POST   /api/mobile/redeem/            # Redeem reward
 ```
 
 ### QR Disposal API
+
 ```
 POST   /api/qr-disposal/scan/         # Scan QR and start session
 POST   /api/qr-disposal/classify/     # Classify waste
@@ -236,14 +260,11 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 Documentation
+## 📝 System Architecture
 
-Detailed documentation is available in the `archive_docs/` folder:
-- [System Architecture](archive_docs/SYSTEM_ARCHITECTURE.md)
-- [QR System Implementation](archive_docs/QR_SYSTEM_ARCHITECTURE.md)
-- [API Testing Guide](archive_docs/POSTMAN_TESTING_GUIDE.md)
-- [Setup Guide](archive_docs/SETUP_GUIDE.md)
-- [Troubleshooting](archive_docs/TROUBLESHOOTING.md)
+For detailed technical information about the system design, data flow, and implementation details, see:
+
+**[📖 ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture and technical documentation
 
 ## 🐛 Known Issues
 
@@ -254,6 +275,7 @@ Detailed documentation is available in the `archive_docs/` folder:
 ## 📧 Contact
 
 **Project Maintainer:** Afshan Farooq
+
 - GitHub: [@Afshan-Farooq-dev](https://github.com/Afshan-Farooq-dev)
 
 ## 📄 License
