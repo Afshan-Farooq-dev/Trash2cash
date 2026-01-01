@@ -1,0 +1,15 @@
+# Tell GitHub this is a Python project
+* linguist-vendored
+*.py linguist-vendored=false
+*.html linguist-vendored
+*.css linguist-vendored
+*.js linguist-vendored
+
+# Exclude documentation from language stats
+archive_docs/** linguist-documentation
+
+# Exclude static assets from language stats  
+Light/static/** linguist-vendored
+
+# Mark as Python project
+*.py linguist-language=Python
