@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2 class="mb-4">Notifications</h2>
+  
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">All Notifications</h5>
+      {% if notifications %}
+        <button class="btn btn-sm btn-outline-secondary" onclick="markAllAsRead()">Mark All as Read</button>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      {% if notifications %}
+        <div class="list-group">
+          {% for notification in notifications %}
+            <div class="list-group-item {% if not notification.is_read %}list-group-item-light{% endif %}">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">
+                  {% if not notification.is_read %}
+                    <span class="badge bg-primary">New</span>
+                  {% endif %}
+                  {{ notification.title }}
+                </h6>
+                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+              </div>
+              <p class="mb-1">{{ notification.message }}</p>
+              {% if not notification.is_read %}
+                <small>
+                  <a href="{% url 'mark_notification_as_read' notification.id %}" class="text-primary">Mark as read</a>
+                </small>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-bell" style="font-size: 4rem; color: #ccc;"></i>
+          <p class="mt-3 text-muted">You have no notifications.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function markAllAsRead() {
+  if (confirm('Mark all notifications as read?')) {
+    // This would need an AJAX endpoint to mark all as read
+    window.location.href = '{% url "notifications" %}';
+  }
+}
+</script>
+{% endblock %}

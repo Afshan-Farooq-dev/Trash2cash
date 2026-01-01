@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+
+{% block title %}Nearby Bins - TRASH2CASH{% endblock %}
+
+{% block extra_css %}
+<!-- 
+📚 LEARNING: Leaflet.js CSS
+- Leaflet is a FREE, open-source JavaScript library for maps
+- No API key needed, no cost, unlimited usage
+- Works with OpenStreetMap (free map tiles)
+-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        z-index: 1;
+    }
+
+    .bins-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .filter-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.6rem 1.2rem;
+        border: 2px solid #ecf0f1;
+        background: white;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .filter-btn:hover {
+        border-color: #2ecc71;
+        background: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+
+    .filter-btn.active {
+        background: #2ecc71;
+        color: white;
+        border-color: #2ecc71;
+    }
+
+    .bin-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+    .bin-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .bin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+
+    .bin-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+
+    .bin-status {
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-active { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+    .status-full { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+    .status-maintenance { background: rgba(243, 156, 18, 0.1); color: #f39c12; }
+
+    .bin-location {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .capacity-section {
+        margin: 1rem 0;
+    }
+
+    .capacity-label {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin-bottom: 0.5rem;
+    }
+
+    .capacity-bar {
+        height: 8px;
+        background: #ecf0f1;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    /* use a CSS variable (number only) and compute percent in CSS to avoid emitting a raw '%' in template */
+    .capacity-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+        width: calc(var(--cap) * 1%);
+    }
+
+    .fill-green { background: #2ecc71; }
+    .fill-yellow { background: #f39c12; }
+    .fill-red { background: #e74c3c; }
+
+    .compartments {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .compartment {
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+    }
+
+    .compartment i {
+        display: block;
+        font-size: 1.2rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .comp-plastic { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+    .comp-paper { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+    .comp-metal { background: rgba(149, 165, 166, 0.1); color: #95a5a6; }
+    .comp-glass { background: rgba(26, 188, 156, 0.1); color: #1abc9c; }
+
+    .comp-full {
+        opacity: 0.4;
+        text-decoration: line-through;
+    }
+
+    .bin-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn-direction {
+        flex: 1;
+        padding: 0.6rem;
+        background: #2ecc71;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-direction:hover {
+        background: #27ae60;
+    }
+
+    @media (max-width: 768px) {
+        #map { height: 300px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title mb-4">Nearby Smart Bins</h1>
+
+<!-- Google Map -->
+<div id="map"></div>
+
+<!-- Bins Grid -->
+<div class="bins-grid">
+    {% for bin in bins %}
+    <div class="bin-card" data-lat="{{ bin.latitude }}" data-lng="{{ bin.longitude }}" onclick="focusBin(parseFloat(this.dataset.lat), parseFloat(this.dataset.lng))">
+        <div class="bin-header">
+            <div class="bin-name">{{ bin.name }}</div>
+            <span class="bin-status status-{{ bin.status }}">
+                {{ bin.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="bin-location">
+            <i class="bi bi-geo-alt-fill"></i>
+            {{ bin.location_name }}
+        <div class="capacity-section">
+            <div class="capacity-label">Capacity: {{ bin.capacity_percentage }}%</div>
+            <div class="capacity-bar">
+                <div class="capacity-fill {% if bin.capacity_percentage < 70 %}fill-green{% elif bin.capacity_percentage < 90 %}fill-yellow{% else %}fill-red{% endif %}" 
+                     style="--cap: {{ bin.capacity_percentage }}"></div>
+            </div>
+        </div>
+            </div>
+        </div>
+
+        <div class="compartments">
+            <div class="compartment comp-plastic {% if bin.plastic_full %}comp-full{% endif %}">
+                <i class="bi bi-cup-straw"></i>
+                <div>Plastic</div>
+            </div>
+            <div class="compartment comp-paper {% if bin.paper_full %}comp-full{% endif %}">
+                <i class="bi bi-file-text"></i>
+                <div>Paper</div>
+            </div>
+            <div class="compartment comp-metal {% if bin.metal_full %}comp-full{% endif %}">
+                <i class="bi bi-box"></i>
+                <div>Metal</div>
+            </div>
+            <div class="compartment comp-glass {% if bin.glass_full %}comp-full{% endif %}">
+                <i class="bi bi-droplet"></i>
+                <div>Glass</div>
+            </div>
+        </div>
+
+        <div class="bin-actions">
+            <a href="https://www.google.com/maps/dir/?api=1&destination={{ bin.latitude }},{{ bin.longitude }}" 
+               target="_blank" 
+               class="btn-direction">
+                <i class="bi bi-navigate"></i>
+                Get Directions
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let map;
+    let markers = [];
+    const bins = JSON.parse('{{ bins_json|escapejs }}');
+
+    function initMap() {
+        const center = { lat: parseFloat('{{ user_lat }}'), lng: parseFloat('{{ user_lng }}') };
+        
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 13,
+            center: center,
+            styles: [
+                {
+                    featureType: 'poi',
+                    elementType: 'labels',
+                    stylers: [{ visibility: 'off' }]
+                }
+            ]
+        });
+
+        // User location marker
+        new google.maps.Marker({
+            position: center,
+            map: map,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#3498db',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2
+            },
+            title: 'Your Location'
+        });
+
+        // Add bin markers
+        bins.forEach(bin => {
+            const marker = new google.maps.Marker({
+                position: { lat: bin.lat, lng: bin.lng },
+                map: map,
+                icon: {
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                        <svg width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="20" cy="20" r="18" fill="${bin.status === 'active' ? '#2ecc71' : '#e74c3c'}" stroke="white" stroke-width="3"/>
+                            <text x="20" y="27" font-size="20" text-anchor="middle" fill="white">🗑️</text>
+                        </svg>
+                    `),
+                    scaledSize: new google.maps.Size(40, 40)
+                },
+                title: bin.name
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 10px;">
+                        <h3 style="margin: 0 0 5px 0; font-size: 16px;">${bin.name}</h3>
+                        <p style="margin: 0; color: #666; font-size: 13px;">${bin.location}</p>
+                        <p style="margin: 5px 0; font-size: 12px;">Capacity: ${bin.capacity}%</p>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${bin.lat},${bin.lng}" 
+                           target="_blank" 
+                           style="color: #2ecc71; text-decoration: none; font-weight: 600;">
+                            Get Directions →
+                        </a>
+                    </div>
+                `
+            });
+
+            marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+            });
+
+            markers.push(marker);
+        });
+    }
+
+    function focusBin(lat, lng) {
+        map.setCenter({ lat: lat, lng: lng });
+        map.setZoom(15);
+    }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAW-hoIv9w5Q4j5iOSDCvOINYqsNQcH5tw&callback=initMap"></script>
+{% endblock %}

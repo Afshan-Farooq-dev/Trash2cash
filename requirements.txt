@@ -1,0 +1,27 @@
+# Django Framework
+Django>=5.1.0,<5.2.0
+
+# AI/ML Libraries
+tensorflow>=2.15.0
+keras>=3.0.0
+
+# Computer Vision
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# QR Code Detection
+pyzbar>=0.1.9
+
+# Data Processing
+numpy>=1.24.0
+
+# Database
+# SQLite3 is included with Python, but for production consider:
+# psycopg2-binary>=2.9.9  # PostgreSQL
+# mysqlclient>=2.2.0      # MySQL
+
+# Optional: Development Tools
+# python-decouple>=3.8    # Environment variables
+# whitenoise>=6.6.0       # Static files serving
+# gunicorn>=21.2.0        # Production server
+# django-cors-headers>=4.3.0  # CORS handling

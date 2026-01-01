@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - TRASH2CASH{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    
+    .register-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    
+    .register-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 
+            0 10px 40px rgba(0, 0, 0, 0.1),
+            0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        padding: 3rem;
+        max-width: 550px;
+        width: 100%;
+        animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .register-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+    
+    .register-logo {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        border-radius: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        color: white;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
+    }
+    
+    .register-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+    
+    .register-subtitle {
+        color: #6c757d;
+        font-size: 1rem;
+    }
+    
+    .form-control {
+        border: 2px solid #e8ecef;
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+    
+    .form-control:focus {
+        border-color: #2ecc71;
+        box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.08);
+        background: white;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.6rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-register {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
+        letter-spacing: 0.5px;
+    }
+    
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(46, 204, 113, 0.35);
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    }
+    
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #6c757d;
+    }
+    
+    .login-link a {
+        color: #2ecc71;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .login-link a:hover {
+        color: #27ae60;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <div class="register-logo">
+                <i class="bi bi-recycle"></i>
+            </div>
+            <h1 class="register-title">Create Account</h1>
+            <p class="register-subtitle">Join TRASH2CASH and start earning today</p>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn-register mt-3">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2 class="mb-4">My Profile</h2>
+  
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card p-4 text-center">
+        <div class="user-avatar mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2rem;">
+          {{ user.username|slice:":1"|upper }}
+        </div>
+        <h4>{{ user.username }}</h4>
+        <p class="text-muted">Level {{ profile.level }}</p>
+        <p class="text-success">{{ profile.total_points }} Points</p>
+        <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+      </div>
+    </div>
+    
+    <div class="col-md-8">
+      <div class="card p-4 mb-3">
+        <h5>Statistics</h5>
+        <div class="row mt-3">
+          <div class="col-6">
+            <p><strong>Total Waste Disposed:</strong> {{ profile.total_waste_disposed }}</p>
+            <p><strong>Plastic:</strong> {{ profile.plastic_count }}</p>
+            <p><strong>Paper:</strong> {{ profile.paper_count }}</p>
+          </div>
+          <div class="col-6">
+            <p><strong>Metal:</strong> {{ profile.metal_count }}</p>
+            <p><strong>Glass:</strong> {{ profile.glass_count }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card p-4 mb-3">
+        <h5>Recent Activity</h5>
+        {% if waste_records %}
+          <ul class="list-group">
+            {% for record in waste_records %}
+              <li class="list-group-item">
+                {{ record.waste_type|title }} - {{ record.disposed_at|date:"M d, Y" }} 
+                <span class="badge bg-success">+{{ record.points_earned }} pts</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">No activity yet</p>
+        {% endif %}
+      </div>
+      
+      <div class="card p-4">
+        <h5>Redemption History</h5>
+        {% if redemptions %}
+          <ul class="list-group">
+            {% for redemption in redemptions %}
+              <li class="list-group-item">
+                {{ redemption.reward.title }} - {{ redemption.requested_at|date:"M d, Y" }}
+                <span class="badge bg-{{ redemption.status }}">{{ redemption.status|title }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">No redemptions yet</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

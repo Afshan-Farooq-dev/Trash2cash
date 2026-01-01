@@ -1,0 +1,689 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - TRASH2CASH{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========== STAT CARDS ========== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+        border-radius: 50%;
+        transform: translate(30%, -30%);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon.green { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; }
+    .stat-icon.blue { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
+    .stat-icon.orange { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; }
+    .stat-icon.purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .stat-trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.85rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 20px;
+        margin-top: 0.5rem;
+    }
+
+    .stat-trend.up {
+        background: rgba(46, 204, 113, 0.1);
+        color: #27ae60;
+    }
+
+    .stat-trend.down {
+        background: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+
+    /* ========== CHARTS SECTION ========== */
+    .charts-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .chart-filter {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .filter-btn {
+        padding: 0.4rem 1rem;
+        border: 1px solid #e0e0e0;
+        background: white;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+        background: #2ecc71;
+        color: white;
+        border-color: #2ecc71;
+    }
+
+    /* ========== RECENT ACTIVITY ========== */
+    .activity-section {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.3s;
+    }
+
+    .activity-item:hover {
+        background: #f8f9fa;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .activity-icon.plastic { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+    .activity-icon.paper { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+    .activity-icon.metal { background: rgba(149, 165, 166, 0.1); color: #95a5a6; }
+    .activity-icon.glass { background: rgba(26, 188, 156, 0.1); color: #1abc9c; }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.2rem;
+    }
+
+    .activity-time {
+        font-size: 0.85rem;
+        color: #95a5a6;
+    }
+
+    .activity-points {
+        font-weight: 700;
+        color: #2ecc71;
+        font-size: 1.1rem;
+    }
+
+    /* ========== LEVEL PROGRESS ========== */
+    .level-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+
+    .level-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .level-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .level-points {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .level-label {
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+
+    .progress-bar-container {
+        background: rgba(255,255,255,0.2);
+        height: 12px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: white;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    .progress-text {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    /* ========== QUICK ACTIONS ========== */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-btn {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: #2c3e50;
+    }
+
+    .action-btn:hover {
+        border-color: #2ecc71;
+        background: rgba(46, 204, 113, 0.05);
+        transform: translateY(-3px);
+    }
+
+    .action-btn i {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #2ecc71;
+    }
+
+    .action-btn span {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 992px) {
+        .charts-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- PAGE HEADER -->
+<div class="mb-4">
+    <h1 style="font-weight: 700; color: #2c3e50; margin-bottom: 0.5rem;">
+        Welcome back, {{ user.first_name|default:user.username }}! 👋
+    </h1>
+    <p style="color: #7f8c8d;">Here's what's happening with your waste management today.</p>
+</div>
+
+<!-- LEVEL PROGRESS CARD -->
+<div class="level-card">
+    <div class="level-header">
+        <div>
+            <div class="level-badge">Level {{ user.profile.level|default:"1" }}</div>
+        </div>
+        <div style="text-align: right;">
+            <div class="level-points">{{ user.profile.total_points|default:"0" }}</div>
+            <div class="level-label">Total Points</div>
+        </div>
+    </div>
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" style="width: 65%;"></div>
+    </div>
+    <div class="progress-text">350 points until Level {{ user.profile.level|default:"1"|add:"1" }}</div>
+</div>
+
+<!-- STATS CARDS -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="bi bi-recycle"></i>
+        </div>
+    <div id="stat-total-waste" class="stat-value">{{ user.profile.total_waste_disposed|default:"0" }}</div>
+        <div class="stat-label">Total Items Recycled</div>
+        <span class="stat-trend up">
+            <i class="bi bi-arrow-up"></i>
+            12% this week
+        </span>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="bi bi-award"></i>
+        </div>
+    <div id="stat-total-points" class="stat-value">{{ user.profile.total_points|default:"0" }}</div>
+        <div class="stat-label">Reward Points</div>
+        <span class="stat-trend up">
+            <i class="bi bi-arrow-up"></i>
+            +50 today
+        </span>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="bi bi-fire"></i>
+        </div>
+        <div class="stat-value">7</div>
+        <div class="stat-label">Day Streak</div>
+        <span class="stat-trend up">
+            <i class="bi bi-arrow-up"></i>
+            Keep going!
+        </span>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="bi bi-tree"></i>
+        </div>
+        <div class="stat-value">2.4kg</div>
+        <div class="stat-label">CO₂ Saved</div>
+        <span class="stat-trend up">
+            <i class="bi bi-arrow-up"></i>
+            Great impact!
+        </span>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="quick-actions">
+    <a href="{% url 'waste_history' %}" class="action-btn">
+        <i class="bi bi-clock-history"></i>
+        <span>View History</span>
+    </a>
+    <a href="{% url 'nearby_bins' %}" class="action-btn">
+        <i class="bi bi-geo-alt"></i>
+        <span>Find Bins</span>
+    </a>
+    <a href="{% url 'redeem_points' %}" class="action-btn" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+        <i class="bi bi-currency-dollar"></i>
+        <span>Redeem Points</span>
+    </a>
+    <a href="{% url 'report_issue' %}" class="action-btn">
+        <i class="bi bi-flag"></i>
+        <span>Report</span>
+    </a>
+</div>
+
+<!-- CHARTS SECTION -->
+<div class="charts-section">
+    <!-- Waste Distribution Chart -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 class="chart-title">Waste Distribution</h3>
+            <div class="chart-filter">
+                <button class="filter-btn active">Week</button>
+                <button class="filter-btn">Month</button>
+                <button class="filter-btn">Year</button>
+            </div>
+        </div>
+        <canvas id="wasteChart" height="100"></canvas>
+    </div>
+
+    <!-- Waste Type Breakdown -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3 class="chart-title">Type Breakdown</h3>
+        </div>
+        <canvas id="typeChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- RECENT ACTIVITY -->
+<div class="activity-section">
+    <div class="chart-header">
+        <h3 class="chart-title">Recent Activity</h3>
+        <a href="{% url 'waste_history' %}" style="color: #2ecc71; text-decoration: none; font-weight: 600;">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <ul id="recent-activity-list" class="activity-list">
+        {% for rec in recent_activity %}
+        <li class="activity-item">
+            <div class="activity-icon {{ rec.waste_type }}">
+                {% if rec.waste_type == 'plastic' %}
+                    <i class="bi bi-cup-straw"></i>
+                {% elif rec.waste_type == 'paper' %}
+                    <i class="bi bi-file-text"></i>
+                {% elif rec.waste_type == 'metal' %}
+                    <i class="bi bi-box"></i>
+                {% elif rec.waste_type == 'glass' %}
+                    <i class="bi bi-droplet"></i>
+                {% else %}
+                    <i class="bi bi-trash"></i>
+                {% endif %}
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">{{ rec.waste_type|title }} disposed</div>
+                <div class="activity-time">{{ rec.disposed_at|timesince }} ago</div>
+            </div>
+            <div class="activity-points">+{{ rec.points_earned|default:0 }}</div>
+        </li>
+        {% empty %}
+        <li class="activity-item"><div class="activity-content"><div class="activity-title">No recent activity</div></div></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<script type="application/json" id="type-data">[{{ user.profile.plastic_count|default:"5" }}, {{ user.profile.paper_count|default:"3" }}, {{ user.profile.metal_count|default:"2" }}, {{ user.profile.glass_count|default:"4" }}]</script>
+
+<script>
+    // Waste Distribution Chart
+    const wasteCtx = document.getElementById('wasteChart').getContext('2d');
+    new Chart(wasteCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Items Recycled',
+                data: [3, 5, 2, 8, 4, 6, 7],
+                borderColor: '#2ecc71',
+                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 2
+                    }
+                }
+            }
+        }
+    });
+
+    // Type Breakdown Chart
+    const typeCtx = document.getElementById('typeChart').getContext('2d');
+    const typeData = JSON.parse(document.getElementById('type-data').textContent);
+    new Chart(typeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Plastic', 'Paper', 'Metal', 'Glass'],
+            datasets: [{
+                data: typeData,
+                backgroundColor: ['#3498db', '#2ecc71', '#95a5a6', '#1abc9c'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Filter Button Toggle
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+
+<script>
+    // Poll the server for live updates to recent activity and stats
+    (function() {
+        const pollInterval = 5000; // ms
+        let polling = true;
+        let pollCount = 0;
+
+        console.log('🔄 Live polling script loaded');
+
+        async function fetchUpdates() {
+            pollCount++;
+            console.log(`📡 Poll #${pollCount} - Fetching updates from server...`);
+            
+            try {
+                const url = '{% url "waste_history" %}';
+                console.log(`   Requesting: ${url}`);
+                
+                const res = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                console.log(`   Response status: ${res.status}`);
+                
+                if (!res.ok) {
+                    console.warn(`   ⚠️ Response not OK: ${res.status}`);
+                    return;
+                }
+                
+                const data = await res.json();
+                console.log(`   ✅ Data received:`, data);
+
+                // Update stats if provided
+                if (data.stats) {
+                    console.log(`   📊 Updating stats: ${data.stats.total_items} items, ${data.stats.total_points} points`);
+                    
+                    if (data.stats.total_items !== undefined) {
+                        const el = document.getElementById('stat-total-waste');
+                        if (el) {
+                            el.textContent = data.stats.total_items || 0;
+                            console.log(`      Updated #stat-total-waste: ${el.textContent}`);
+                        } else {
+                            console.warn('      ⚠️ Element #stat-total-waste not found');
+                        }
+                    }
+                    
+                    if (data.stats.total_points !== undefined) {
+                        const el2 = document.getElementById('stat-total-points');
+                        if (el2) {
+                            el2.textContent = data.stats.total_points || 0;
+                            console.log(`      Updated #stat-total-points: ${el2.textContent}`);
+                        } else {
+                            console.warn('      ⚠️ Element #stat-total-points not found');
+                        }
+                    }
+                } else {
+                    console.warn('   ⚠️ No stats in response');
+                }
+
+                // Update recent activity list
+                if (data.records) {
+                    console.log(`   📝 Updating activity list with ${data.records.length} records`);
+                    
+                    const list = document.getElementById('recent-activity-list');
+                    if (!list) {
+                        console.warn('      ⚠️ Element #recent-activity-list not found');
+                        return;
+                    }
+                    
+                    list.innerHTML = '';
+                    data.records.slice(0,5).forEach((r, idx) => {
+                        console.log(`      Adding record ${idx+1}: ${r.waste_type} (${r.points_earned} pts)`);
+                        
+                        const li = document.createElement('li');
+                        li.className = 'activity-item';
+
+                        const iconDiv = document.createElement('div');
+                        iconDiv.className = `activity-icon ${r.waste_type}`;
+                        let iconHtml = '<i class="bi bi-trash"></i>';
+                        if (r.waste_type === 'plastic') iconHtml = '<i class="bi bi-cup-straw"></i>';
+                        else if (r.waste_type === 'paper') iconHtml = '<i class="bi bi-file-text"></i>';
+                        else if (r.waste_type === 'metal') iconHtml = '<i class="bi bi-box"></i>';
+                        else if (r.waste_type === 'glass') iconHtml = '<i class="bi bi-droplet"></i>';
+                        iconDiv.innerHTML = iconHtml;
+
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'activity-content';
+                        const title = document.createElement('div');
+                        title.className = 'activity-title';
+                        title.textContent = `${r.waste_type ? r.waste_type.charAt(0).toUpperCase()+r.waste_type.slice(1) : 'Waste'} disposed`;
+                        const time = document.createElement('div');
+                        time.className = 'activity-time';
+                        // show human-friendly time if available
+                        time.textContent = r.disposed_at ? new Date(r.disposed_at).toLocaleString() : '';
+                        contentDiv.appendChild(title);
+                        contentDiv.appendChild(time);
+
+                        const pointsDiv = document.createElement('div');
+                        pointsDiv.className = 'activity-points';
+                        pointsDiv.textContent = `+${r.points_earned || 0}`;
+
+                        li.appendChild(iconDiv);
+                        li.appendChild(contentDiv);
+                        li.appendChild(pointsDiv);
+                        list.appendChild(li);
+                    });
+                    
+                    console.log(`      ✅ Activity list updated with ${list.children.length} items`);
+                } else {
+                    console.warn('   ⚠️ No records in response');
+                }
+                
+                console.log(`   ⏱️ Next poll in ${pollInterval/1000} seconds`);
+            } catch (e) {
+                console.error('❌ Live poll error:', e);
+            } finally {
+                if (polling) setTimeout(fetchUpdates, pollInterval);
+            }
+        }
+
+        // Start polling after DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM loaded, starting polling in 1 second...');
+            setTimeout(fetchUpdates, 1000);
+        });
+        
+        console.log('✅ Polling system initialized');
+    })();
+</script>
+{% endblock %}

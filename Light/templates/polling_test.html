@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Dashboard Polling Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .card { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 10px; }
+        .stat { font-size: 2em; font-weight: bold; color: #2ecc71; }
+        .label { color: #7f8c8d; margin-bottom: 10px; }
+        .log { background: #000; color: #0f0; padding: 15px; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; }
+        .activity { border-bottom: 1px solid #ddd; padding: 10px; }
+        button { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #27ae60; }
+        .info { background: #3498db; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Live Dashboard Polling Test</h1>
+    
+    <div class="info">
+        <strong>Instructions:</strong>
+        <ol>
+            <li>Open browser console (F12) to see detailed logs</li>
+            <li>Make sure you're logged in as the user who disposed trash</li>
+            <li>Watch the stats update automatically every 5 seconds</li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <div class="label">Total Waste Disposed</div>
+        <div id="stat-total-waste" class="stat">Loading...</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Total Points Earned</div>
+        <div id="stat-total-points" class="stat">Loading...</div>
+    </div>
+
+    <div class="card">
+        <h3>Recent Activity</h3>
+        <ul id="recent-activity-list" style="list-style: none; padding: 0;">
+            <li>Loading...</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Console Log</h3>
+        <div id="console-log" class="log"></div>
+    </div>
+
+    <div>
+        <button onclick="manualPoll()">🔄 Manual Poll Now</button>
+        <button onclick="clearLog()">🗑️ Clear Log</button>
+    </div>
+
+    <script>
+        const pollInterval = 5000;
+        let polling = true;
+        let pollCount = 0;
+
+        function log(msg, type = 'info') {
+            const logDiv = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = { info: '#0f0', warn: '#ff0', error: '#f00', success: '#0ff' };
+            logDiv.innerHTML += `<div style="color: ${colors[type] || '#0f0'}">[${timestamp}] ${msg}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(msg);
+        }
+
+        function clearLog() {
+            document.getElementById('console-log').innerHTML = '';
+        }
+
+        async function fetchUpdates() {
+            pollCount++;
+            log(`📡 Poll #${pollCount} - Fetching updates...`);
+
+            try {
+                const url = '/user/waste-history/';
+                const res = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                log(`   Status: ${res.status}`, res.ok ? 'success' : 'error');
+
+                if (!res.ok) {
+                    log(`   ⚠️ Response not OK`, 'warn');
+                    return;
+                }
+
+                const data = await res.json();
+                log(`   ✅ Data received: ${JSON.stringify(data.stats)}`, 'success');
+
+                // Update stats
+                if (data.stats) {
+                    if (data.stats.total_items !== undefined) {
+                        const el = document.getElementById('stat-total-waste');
+                        if (el) {
+                            el.textContent = data.stats.total_items || 0;
+                            log(`   📊 Total Waste: ${el.textContent}`, 'success');
+                        }
+                    }
+                    if (data.stats.total_points !== undefined) {
+                        const el = document.getElementById('stat-total-points');
+                        if (el) {
+                            el.textContent = data.stats.total_points || 0;
+                            log(`   💰 Total Points: ${el.textContent}`, 'success');
+                        }
+                    }
+                }
+
+                // Update activity list
+                if (data.records && data.records.length > 0) {
+                    const list = document.getElementById('recent-activity-list');
+                    list.innerHTML = '';
+                    data.records.slice(0, 5).forEach((r, idx) => {
+                        const li = document.createElement('li');
+                        li.className = 'activity';
+                        li.innerHTML = `
+                            <strong>${r.waste_type}</strong> - 
+                            ${r.points_earned} points - 
+                            ${new Date(r.disposed_at).toLocaleString()}
+                        `;
+                        list.appendChild(li);
+                    });
+                    log(`   📝 Updated ${data.records.length} activity items`, 'success');
+                } else {
+                    log(`   ℹ️ No recent activity`, 'info');
+                }
+
+                log(`   ⏱️ Next poll in ${pollInterval / 1000}s`);
+            } catch (e) {
+                log(`   ❌ Error: ${e.message}`, 'error');
+            } finally {
+                if (polling) setTimeout(fetchUpdates, pollInterval);
+            }
+        }
+
+        function manualPoll() {
+            log('🔘 Manual poll triggered', 'info');
+            fetchUpdates();
+        }
+
+        // Start polling
+        log('🚀 Polling system starting...', 'info');
+        setTimeout(fetchUpdates, 1000);
+    </script>
+</body>
+</html>

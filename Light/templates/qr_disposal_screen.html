@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Waste Disposal - TRASH2CASH</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'Lesson/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(46, 204, 113, 0.1) 0%, transparent 70%);
+            animation: rotateBackground 30s linear infinite;
+        }
+
+        @keyframes rotateBackground {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .main-container {
+            width: 96vw;
+            max-width: 1500px;
+            height: 92vh;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 35px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+            color: white;
+            padding: 35px 40px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin: 0;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.4rem;
+            margin-top: 12px;
+            opacity: 0.95;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .content-area {
+            padding: 40px;
+            height: calc(100% - 150px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* STATE 1: WAITING FOR QR */
+        .state-waiting {
+            text-align: center;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .state-waiting h2 {
+            font-size: 4rem;
+            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .state-waiting .qr-icon {
+            font-size: 9rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 35px;
+            animation: pulseGlow 2s infinite;
+            filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.3));
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.3)); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 8px 16px rgba(139, 92, 246, 0.5)); }
+        }
+
+        .camera-feed {
+            width: 500px;
+            height: 380px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 6px solid transparent;
+            background-image: 
+                linear-gradient(white, white),
+                linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            border-radius: 25px;
+            margin: 35px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.2);
+        }
+
+        .camera-feed video,
+        .camera-feed img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-placeholder {
+            font-size: 1.8rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .scanning-line {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            box-shadow: 0 0 15px #10b981;
+            animation: scan 2.5s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0%, 100% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Corner markers for camera */
+        .camera-feed::before,
+        .camera-feed::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 4px solid #10b981;
+            z-index: 10;
+        }
+
+        .camera-feed::before {
+            top: 15px;
+            left: 15px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .camera-feed::after {
+            bottom: 15px;
+            right: 15px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* STATE 2: AUTHENTICATED */
+        .state-authenticated {
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .success-icon {
+            font-size: 10rem;
+            color: #2ecc71;
+            margin-bottom: 30px;
+            animation: fadeInScale 0.5s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .user-info-card {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%);
+            padding: 45px;
+            border-radius: 25px;
+            margin: 35px 0;
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.15);
+            border: 2px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .user-info-card h3 {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 35px;
+            font-weight: 900;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 35px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            border: 2px solid rgba(59, 130, 246, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.2);
+        }
+
+        .stat-item .label {
+            font-size: 1.2rem;
+            color: #64748b;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .stat-item .value {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .btn-custom {
+            padding: 28px 65px;
+            font-size: 2.2rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-custom::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-custom:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-start:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-cancel:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        /* STATE 3: PROCESSING */
+        .state-processing {
+            text-align: center;
+            width: 100%;
+        }
+
+        .processing-icon {
+            font-size: 10rem;
+            color: #3498db;
+            margin-bottom: 30px;
+            animation: rotate 2s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .processing-steps {
+            max-width: 600px;
+            margin: 30px auto;
+            text-align: left;
+        }
+
+        .step-item {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 15px 0;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .step-item.active {
+            border-left-color: #2ecc71;
+            background: linear-gradient(90deg, #d5f4e6 0%, white 100%);
+        }
+
+        .step-item.completed {
+            border-left-color: #95a5a6;
+            opacity: 0.7;
+        }
+
+        .step-icon {
+            font-size: 2rem;
+        }
+
+        /* STATE 4: SUCCESS */
+        .state-success {
+            text-align: center;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .celebration {
+            font-size: 12rem;
+            margin-bottom: 30px;
+            animation: celebrate 1s ease-out;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(-10deg); }
+            75% { transform: scale(1.2) rotate(10deg); }
+        }
+
+        .success-card {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #6ee7b7 100%);
+            padding: 55px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(16, 185, 129, 0.3);
+            border: 3px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .success-card h2 {
+            font-size: 4.5rem;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 45px;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .points-display {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            margin: 35px 0;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            border: 2px solid rgba(245, 158, 11, 0.1);
+        }
+
+        .points-display .earned {
+            font-size: 6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 25px 0;
+            filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.3));
+        }
+
+        .waste-type-display {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin: 20px 0;
+        }
+
+        /* HIDDEN STATE */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Countdown Timer */
+        .countdown {
+            font-size: 3rem;
+            color: #e74c3c;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        /* Status Messages */
+        .status-message {
+            font-size: 2rem;
+            color: #64748b;
+            margin: 25px 0;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .status-message i {
+            color: #3b82f6;
+            margin-right: 10px;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="bi bi-recycle"></i> TRASH2CASH</h1>
+            <p>Smart Waste Disposal System</p>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            
+            <!-- STATE 1: WAITING FOR QR CODE -->
+            <div id="state-waiting" class="state-waiting">
+                <div class="qr-icon">📱</div>
+                <h2>SCAN YOUR QR CODE</h2>
+                <p class="status-message">Point your mobile QR code towards the camera</p>
+                
+                <div class="camera-feed" id="camera-container">
+                    <video id="camera-video" autoplay playsinline></video>
+                    <div class="scanning-line"></div>
+                </div>
+                
+                <p class="status-message" style="color: #3498db; font-weight: bold;">
+                    <i class="bi bi-camera-video"></i> Camera Active - Scanning...
+                </p>
+            </div>
+
+            <!-- STATE 2: USER AUTHENTICATED -->
+            <div id="state-authenticated" class="state-authenticated hidden">
+                <div class="success-icon">✅</div>
+                
+                <div class="user-info-card">
+                    <h3>Welcome, <span id="user-name">User</span>!</h3>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="label">Current Points</div>
+                            <div class="value" id="user-points">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Level</div>
+                            <div class="value" id="user-level">1</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Total Waste</div>
+                            <div class="value" id="user-waste">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 style="font-size: 2.5rem; color: #2c3e50; margin: 30px 0;">
+                    Ready to dispose waste?
+                </h2>
+
+                <div class="action-buttons">
+                    <button class="btn-custom btn-start" onclick="startDisposal()">
+                        🗑️ START DISPOSAL
+                    </button>
+                    <button class="btn-custom btn-cancel" onclick="cancelDisposal()">
+                        ❌ CANCEL
+                    </button>
+                </div>
+            </div>
+
+            <!-- STATE 3: PROCESSING -->
+            <div id="state-processing" class="state-processing hidden">
+                <div class="processing-icon">⏳</div>
+                <h2 style="font-size: 3rem; color: #3498db; margin-bottom: 40px;">
+                    Processing Disposal...
+                </h2>
+
+                <div class="processing-steps">
+                    <div class="step-item" id="step-1">
+                        <span class="step-icon">🔓</span>
+                        <span>Opening bin lid...</span>
+                    </div>
+                    <div class="step-item" id="step-2">
+                        <span class="step-icon">⏱️</span>
+                        <span>Please place waste inside...</span>
+                    </div>
+                    <div class="step-item" id="step-3">
+                        <span class="step-icon">📸</span>
+                        <span>Capturing image...</span>
+                    </div>
+                    <div class="step-item" id="step-4">
+                        <span class="step-icon">🤖</span>
+                        <span>Analyzing waste type...</span>
+                    </div>
+                    <div class="step-item" id="step-5">
+                        <span class="step-icon">🚪</span>
+                        <span>Opening compartment...</span>
+                    </div>
+                    <div class="step-item" id="step-6">
+                        <span class="step-icon">🔒</span>
+                        <span>Closing bin...</span>
+                    </div>
+                </div>
+
+                <p class="status-message" style="color: #3498db; font-weight: bold; font-size: 2rem; margin-top: 30px;">
+                    Please wait...
+                </p>
+            </div>
+
+            <!-- STATE 4: SUCCESS -->
+            <div id="state-success" class="state-success hidden">
+                <div class="celebration">🎉</div>
+                
+                <div class="success-card">
+                    <h2>DISPOSAL SUCCESSFUL!</h2>
+                    
+                    <div class="points-display">
+                        <div class="waste-type-display">
+                            <span id="detected-waste-type">Plastic</span> 
+                            <span id="waste-icon">🧴</span>
+                        </div>
+                        <div style="font-size: 1.5rem; color: #7f8c8d;">Points Earned</div>
+                        <div class="earned">+<span id="points-earned">10</span> ⭐</div>
+                        <div style="font-size: 1.8rem; color: #2c3e50; margin-top: 20px;">
+                            Total Points: <strong id="total-points-display">60</strong>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 2rem; color: #27ae60; margin: 30px 0;">
+                        🌱 Thank you for recycling!
+                    </p>
+
+                    <div class="action-buttons">
+                        <button class="btn-custom btn-start" onclick="disposeAgain()">
+                            🔄 DISPOSE AGAIN
+                        </button>
+                        <button class="btn-custom" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white;" onclick="finish()">
+                            ✅ DONE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let currentState = 'waiting';
+        let qrScanInterval = null;
+        let currentUser = null;
+        let processingStepIndex = 0;
+
+        // Initialize camera and QR scanning
+        window.onload = function() {
+            console.log("🚀 QR Disposal Screen Loaded");
+            startCamera();
+            startQRScanning();
+        };
+
+        // Start Camera
+        function startCamera() {
+            console.log("📷 Starting camera...");
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            })
+            .then(function(stream) {
+                const video = document.getElementById('camera-video');
+                video.srcObject = stream;
+                console.log("✅ Camera started successfully");
+            })
+            .catch(function(err) {
+                console.error("❌ Camera error:", err);
+                document.getElementById('camera-container').innerHTML = 
+                    '<div class="camera-placeholder">📷 Camera unavailable<br>Please check permissions</div>';
+            });
+        }
+
+        // Start QR Code Scanning (Poll backend)
+        function startQRScanning() {
+            console.log("🔍 Starting QR scanning...");
+            updateStatus("Scanning for QR code...", "info");
+            
+            let scanAttempts = 0;
+            
+            qrScanInterval = setInterval(async () => {
+                if (currentState !== 'waiting') {
+                    clearInterval(qrScanInterval);
+                    return;
+                }
+
+                scanAttempts++;
+                console.log(`📸 Scan attempt #${scanAttempts}`);
+                updateStatus(`Scanning... (Attempt ${scanAttempts})`, "info");
+
+                try {
+                    // Capture frame and send to backend
+                    const video = document.getElementById('camera-video');
+                    
+                    if (!video || !video.videoWidth) {
+                        console.log("⚠️ Video not ready yet");
+                        updateStatus("Initializing camera...", "warning");
+                        return;
+                    }
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+                    
+                    const imageData = canvas.toDataURL('image/jpeg');
+                    
+                    console.log("📤 Sending frame to backend...");
+                    updateStatus("Processing frame...", "info");
+                    
+                    // Send to backend for QR detection
+                    const response = await fetch('/api/qr/scan/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({ image: imageData })
+                    });
+
+                    const data = await response.json();
+                    console.log("📥 Backend response:", data);
+                    
+                    if (data.qr_detected && data.user_authenticated) {
+                        console.log("✅ QR Code detected and user authenticated!");
+                        updateStatus("QR Code Detected! ✓", "success");
+                        clearInterval(qrScanInterval);
+                        showAuthenticatedState(data.user_data);
+                    } else if (data.qr_detected && !data.user_authenticated) {
+                        console.log("❌ QR detected but authentication failed");
+                        updateStatus("QR detected but invalid credentials", "error");
+                    } else {
+                        console.log("⏳ No QR code found, continuing...");
+                        updateStatus(`Scanning... (${scanAttempts} attempts)`, "info");
+                    }
+                } catch (error) {
+                    console.error("❌ Scan error:", error);
+                    updateStatus(`Scan error: ${error.message}`, "error");
+                }
+            }, 1000); // Scan every 1 second
+        }
+
+        // Update status message with color
+        function updateStatus(message, type = "info") {
+            const statusElement = document.querySelector('.status-message');
+            if (statusElement) {
+                statusElement.innerHTML = `<i class="bi bi-${getIconForType(type)}"></i> ${message}`;
+                statusElement.style.color = getColorForType(type);
+            }
+        }
+
+        function getIconForType(type) {
+            const icons = {
+                'info': 'camera',
+                'success': 'check-circle-fill',
+                'error': 'x-circle-fill',
+                'warning': 'exclamation-triangle-fill'
+            };
+            return icons[type] || 'camera';
+        }
+
+        function getColorForType(type) {
+            const colors = {
+                'info': '#3b82f6',
+                'success': '#10b981',
+                'error': '#ef4444',
+                'warning': '#f59e0b'
+            };
+            return colors[type] || '#64748b';
+        }
+
+        // Show Authenticated State
+        function showAuthenticatedState(userData) {
+            currentUser = userData;
+            currentState = 'authenticated';
+            
+            // Hide waiting state
+            document.getElementById('state-waiting').classList.add('hidden');
+            
+            // Show authenticated state
+            document.getElementById('state-authenticated').classList.remove('hidden');
+            
+            // Populate user data
+            document.getElementById('user-name').textContent = userData.username;
+            document.getElementById('user-points').textContent = userData.total_points;
+            document.getElementById('user-level').textContent = userData.level;
+            document.getElementById('user-waste').textContent = userData.total_waste_disposed;
+            
+            console.log("👤 User:", userData.username, "authenticated!");
+        }
+
+        // Start Disposal (AUTO functionality)
+        async function startDisposal() {
+            console.log("🗑️ Starting disposal process...");
+            currentState = 'processing';
+            
+            // Hide authenticated state
+            document.getElementById('state-authenticated').classList.add('hidden');
+            
+            // Show processing state
+            document.getElementById('state-processing').classList.remove('hidden');
+            
+            try {
+                // Call backend to start AUTO disposal
+                const response = await fetch('/api/qr/start-disposal/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ 
+                        user_id: currentUser.user_id,
+                        cnic: currentUser.cnic
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Animate processing steps
+                    await animateProcessingSteps();
+                    
+                    // Show success
+                    showSuccessState(data.disposal_data);
+                } else {
+                    alert("❌ Error: " + data.message);
+                    resetToWaiting();
+                }
+                
+            } catch (error) {
+                console.error("❌ Disposal error:", error);
+                alert("Error during disposal. Please try again.");
+                resetToWaiting();
+            }
+        }
+
+        // Animate Processing Steps
+        async function animateProcessingSteps() {
+            const steps = ['step-1', 'step-2', 'step-3', 'step-4', 'step-5', 'step-6'];
+            
+            for (let i = 0; i < steps.length; i++) {
+                const stepEl = document.getElementById(steps[i]);
+                stepEl.classList.add('active');
+                
+                // Wait based on step (different durations)
+                const delays = [2000, 5000, 2000, 3000, 2000, 2000]; // milliseconds
+                await new Promise(resolve => setTimeout(resolve, delays[i]));
+                
+                stepEl.classList.remove('active');
+                stepEl.classList.add('completed');
+            }
+        }
+
+        // Show Success State
+        function showSuccessState(disposalData) {
+            currentState = 'success';
+            
+            // Hide processing state
+            document.getElementById('state-processing').classList.add('hidden');
+            
+            // Show success state
+            document.getElementById('state-success').classList.remove('hidden');
+            
+            // Populate disposal data
+            document.getElementById('detected-waste-type').textContent = 
+                disposalData.waste_type.charAt(0).toUpperCase() + disposalData.waste_type.slice(1);
+            
+            const wasteIcons = {
+                'plastic': '🧴',
+                'paper': '📄',
+                'metal': '🥫',
+                'glass': '🍾',
+                'cardboard': '📦',
+                'trash': '🗑️'
+            };
+            document.getElementById('waste-icon').textContent = 
+                wasteIcons[disposalData.waste_type] || '🗑️';
+            
+            document.getElementById('points-earned').textContent = disposalData.points_earned;
+            document.getElementById('total-points-display').textContent = disposalData.total_points;
+            
+            console.log("🎉 Disposal successful!");
+        }
+
+        // Dispose Again
+        function disposeAgain() {
+            console.log("🔄 Dispose again clicked");
+            resetToWaiting();
+        }
+
+        // Finish
+        function finish() {
+            console.log("✅ Done clicked");
+            resetToWaiting();
+        }
+
+        // Cancel Disposal
+        function cancelDisposal() {
+            console.log("❌ Disposal cancelled");
+            resetToWaiting();
+        }
+
+        // Reset to Waiting State
+        function resetToWaiting() {
+            currentState = 'waiting';
+            currentUser = null;
+            
+            // Hide all states
+            document.getElementById('state-authenticated').classList.add('hidden');
+            document.getElementById('state-processing').classList.add('hidden');
+            document.getElementById('state-success').classList.add('hidden');
+            
+            // Reset processing steps
+            for (let i = 1; i <= 6; i++) {
+                const step = document.getElementById('step-' + i);
+                step.classList.remove('active', 'completed');
+            }
+            
+            // Show waiting state
+            document.getElementById('state-waiting').classList.remove('hidden');
+            
+            // Restart QR scanning
+            startQRScanning();
+            
+            console.log("🔄 Reset to waiting state");
+        }
+
+        // Get CSRF Token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

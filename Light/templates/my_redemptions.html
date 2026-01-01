@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}My Redemptions{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2 class="mb-4">My Redemptions</h2>
+  
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Redemption History</h5>
+    </div>
+    <div class="card-body">
+      {% if redemptions %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Reward</th>
+                <th>Points Used</th>
+                <th>Date Requested</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for redemption in redemptions %}
+                <tr>
+                  <td>{{ redemption.reward.title }}</td>
+                  <td>{{ redemption.points_used }}</td>
+                  <td>{{ redemption.requested_at|date:"M d, Y H:i" }}</td>
+                  <td>
+                    {% if redemption.status == 'pending' %}
+                      <span class="badge bg-warning">Pending</span>
+                    {% elif redemption.status == 'approved' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% elif redemption.status == 'rejected' %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% elif redemption.status == 'completed' %}
+                      <span class="badge bg-info">Completed</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-gift" style="font-size: 4rem; color: #ccc;"></i>
+          <p class="mt-3 text-muted">You haven't redeemed any rewards yet.</p>
+          <a href="{% url 'rewards_store' %}" class="btn btn-primary">Browse Rewards</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

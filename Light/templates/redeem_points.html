@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+
+{% block title %}Redeem Points - TRASH2CASH{% endblock %}
+
+{% block extra_css %}
+<style>
+    .redeem-container {
+        padding: 2rem 0;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .points-banner {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .points-banner h2 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .points-banner p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+
+    .category-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .category-tab {
+        background: white;
+        border: 2px solid #e0e0e0;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .category-tab:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .category-tab.active {
+        border-color: #2ecc71;
+        background: #f0fdf4;
+    }
+
+    .category-tab .icon {
+        font-size: 3rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .category-tab .icon i {
+        transition: transform 0.3s;
+    }
+
+    .category-tab:hover .icon i {
+        transform: scale(1.1);
+    }
+
+    .category-tab .title {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .redeem-form {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        display: none;
+    }
+
+    .redeem-form.active {
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: #2ecc71;
+        outline: none;
+    }
+
+    .btn-redeem {
+        background: #2ecc71;
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        font-size: 1.1rem;
+    }
+
+    .btn-redeem:hover {
+        background: #27ae60;
+    }
+
+    .conversion-info {
+        background: #f0fdf4;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #2ecc71;
+    }
+
+    .file-upload-label {
+        display: block;
+        padding: 1rem;
+        border: 2px dashed #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .file-upload-label:hover {
+        border-color: #2ecc71;
+        background: #f0fdf4;
+    }
+
+    @media (max-width: 768px) {
+        .category-tabs {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="redeem-container container">
+    <div class="points-banner">
+        <h2><i class="bi bi-coin me-2"></i>{{ profile.total_points }} Points Available</h2>
+        <p><i class="bi bi-currency-exchange me-1"></i>Current Balance: PKR {{ profile.total_points|floatformat:2 }} (2 points = 1 PKR)</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="category-tabs">
+        <div class="category-tab active" onclick="showCategory('electricity')">
+            <div class="icon"><i class="bi bi-lightning-charge-fill text-warning"></i></div>
+            <div class="title">Electricity Bill</div>
+        </div>
+        <div class="category-tab" onclick="showCategory('gas')">
+            <div class="icon"><i class="bi bi-fire text-danger"></i></div>
+            <div class="title">Gas Bill</div>
+        </div>
+        <div class="category-tab" onclick="showCategory('voucher')">
+            <div class="icon"><i class="bi bi-ticket-perforated-fill text-primary"></i></div>
+            <div class="title">Vouchers</div>
+        </div>
+        <div class="category-tab" onclick="showCategory('charity')">
+            <div class="icon"><i class="bi bi-heart-fill text-danger"></i></div>
+            <div class="title">Charity</div>
+        </div>
+    </div>
+
+    <!-- Electricity Form -->
+    <form method="POST" class="redeem-form active" id="electricity-form">
+        {% csrf_token %}
+        <input type="hidden" name="category" value="electricity">
+        
+        <h3><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Electricity Bill Redemption</h3>
+        <div class="conversion-info">
+            <strong><i class="bi bi-info-circle me-1"></i>Note:</strong> Your points will be converted to PKR. Minimum 70 points required (2 points = 1 PKR).
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Select Provider *</label>
+            <select name="provider" class="form-control" required>
+                <option value="">Choose electricity provider</option>
+                {% for code, name in electricity_providers %}
+                    <option value="{{ code }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Bill Reference Number *</label>
+            <input type="text" name="reference_number" class="form-control" 
+                   placeholder="Enter reference number" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Points to Redeem *</label>
+            <input type="number" name="points" class="form-control" 
+                   placeholder="Minimum 70 points" min="70" max="{{ profile.total_points }}" required
+                   onchange="updatePKR(this.value)">
+            <small id="pkr-value" style="color: #2ecc71; font-weight: 600;"></small>
+        </div>
+
+        <button type="submit" class="btn-redeem">Submit Request</button>
+    </form>
+
+    <!-- Gas Form -->
+    <form method="POST" class="redeem-form" id="gas-form">
+        {% csrf_token %}
+        <input type="hidden" name="category" value="gas">
+        
+        <h3><i class="bi bi-fire text-danger me-2"></i>Gas Bill Redemption</h3>
+        <div class="conversion-info">
+            <strong><i class="bi bi-info-circle me-1"></i>Note:</strong> Your points will be converted to PKR. Minimum 70 points required (2 points = 1 PKR).
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Select Gas Company *</label>
+            <select name="gas_company" class="form-control" required>
+                <option value="">Choose gas company</option>
+                {% for code, name in gas_companies %}
+                    <option value="{{ code }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Consumer Number *</label>
+            <input type="text" name="consumer_number" class="form-control" 
+                   placeholder="Enter consumer number" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Points to Redeem *</label>
+            <input type="number" name="points" class="form-control" 
+                   placeholder="Minimum 70 points" min="70" max="{{ profile.total_points }}" required>
+        </div>
+
+        <button type="submit" class="btn-redeem">Submit Request</button>
+    </form>
+
+    <!-- Voucher Form -->
+    <form method="POST" class="redeem-form" id="voucher-form">
+        {% csrf_token %}
+        <input type="hidden" name="category" value="voucher">
+        
+        <h3><i class="bi bi-ticket-perforated-fill text-primary me-2"></i>Voucher Redemption</h3>
+        <div class="conversion-info">
+            <strong><i class="bi bi-info-circle me-1"></i>Note:</strong> You'll receive a unique code to use at partner stores. Minimum 70 points required (2 points = 1 PKR).
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Select Partner *</label>
+            <select name="partner" class="form-control" required>
+                <option value="">Choose partner brand</option>
+                <option value="KFC">KFC</option>
+                <option value="McDonald's">McDonald's</option>
+                <option value="Careem">Careem</option>
+                <option value="Daraz">Daraz</option>
+                <option value="Foodpanda">Foodpanda</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Voucher Type *</label>
+            <select name="voucher_type" class="form-control" required>
+                <option value="">Choose voucher type</option>
+                <option value="PKR 100 Discount">PKR 100 Discount</option>
+                <option value="PKR 200 Discount">PKR 200 Discount</option>
+                <option value="PKR 500 Discount">PKR 500 Discount</option>
+                <option value="10% Off">10% Off</option>
+                <option value="20% Off">20% Off</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Points to Redeem *</label>
+            <input type="number" name="points" class="form-control" 
+                   placeholder="Minimum 70 points" min="70" max="{{ profile.total_points }}" required>
+        </div>
+
+        <button type="submit" class="btn-redeem">Submit Request</button>
+    </form>
+
+    <!-- Charity Form -->
+    <form method="POST" class="redeem-form" id="charity-form">
+        {% csrf_token %}
+        <input type="hidden" name="category" value="charity">
+        
+        <h3><i class="bi bi-heart-fill text-danger me-2"></i>Charity Donation</h3>
+        <div class="conversion-info">
+            <strong><i class="bi bi-info-circle me-1"></i>Note:</strong> Your points will be converted to PKR and donated. Minimum 70 points required (2 points = 1 PKR).
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Select Charity *</label>
+            <select name="charity" class="form-control" required>
+                <option value="">Choose charity organization</option>
+                <option value="Edhi Foundation">Edhi Foundation</option>
+                <option value="Shaukat Khanum">Shaukat Khanum Memorial Cancer Hospital</option>
+                <option value="SOS Children's Villages">SOS Children's Villages Pakistan</option>
+                <option value="The Citizens Foundation">The Citizens Foundation (TCF)</option>
+                <option value="Akhuwat">Akhuwat Foundation</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Points to Donate *</label>
+            <input type="number" name="points" class="form-control" 
+                   placeholder="Minimum 70 points" min="70" max="{{ profile.total_points }}" required>
+        </div>
+
+        <button type="submit" class="btn-redeem">Submit Donation</button>
+    </form>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="{% url 'redemption_history' %}" class="btn btn-outline-primary">
+            View Redemption History
+        </a>
+    </div>
+</div>
+
+<script>
+function showCategory(category) {
+    // Hide all forms
+    document.querySelectorAll('.redeem-form').forEach(form => {
+        form.classList.remove('active');
+    });
+    
+    // Remove active from all tabs
+    document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected form
+    document.getElementById(category + '-form').classList.add('active');
+    
+    // Add active to selected tab
+    event.target.closest('.category-tab').classList.add('active');
+}
+
+function updatePKR(points) {
+    const pkr = (points * 0.5).toFixed(2);
+    document.getElementById('pkr-value').textContent = `= PKR ${pkr}`;
+}
+</script>
+{% endblock %}

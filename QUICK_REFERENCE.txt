@@ -1,0 +1,117 @@
+# 🚀 QUICK URL REFERENCE CARD
+
+**Base URL:** `http://127.0.0.1:8000`
+
+---
+
+## 🎯 MOST USED URLS
+
+### For Users:
+```
+📱 Main Dashboard:      http://127.0.0.1:8000/
+🔐 Login:              http://127.0.0.1:8000/login/
+📝 Register:           http://127.0.0.1:8000/register/
+📊 User Dashboard:     http://127.0.0.1:8000/user/dashboard/
+👤 My Profile:         http://127.0.0.1:8000/user/profile/
+✏️  Edit Profile:       http://127.0.0.1:8000/user/profile/edit/
+📜 Waste History:      http://127.0.0.1:8000/user/waste-history/
+🎁 Rewards Store:      http://127.0.0.1:8000/user/rewards/
+🔔 Notifications:      http://127.0.0.1:8000/user/notifications/
+```
+
+### For Admins:
+```
+⚙️  Admin Panel:        http://127.0.0.1:8000/admin/
+```
+
+---
+
+## 📹 CAMERA & AI ENDPOINTS
+
+```
+Live Feed:             http://127.0.0.1:8000/livefe/?ip=192.168.4.1/stream
+QR Scanner:            http://127.0.0.1:8000/qr_stream/?ip=192.168.4.1/stream
+Capture Frame:         http://127.0.0.1:8000/capture_frame/
+Get QR Results:        http://127.0.0.1:8000/get_qr_results/
+Stream Status:         http://127.0.0.1:8000/is_streaming/
+Stop Stream:           http://127.0.0.1:8000/stop_stream/
+```
+
+---
+
+## 🔐 ACCESS LEVELS
+
+| Icon | Meaning |
+|------|---------|
+| 🔓 | Public - No login required |
+| 🔒 | Login Required |
+| ⚙️ | Admin/Superuser Only |
+
+---
+
+## 📊 URL STATISTICS
+
+- **Total URLs:** 28
+- **Public URLs:** 15 (🔓)
+- **Login Required:** 12 (🔒)
+- **Admin URLs:** 1 (⚙️)
+- **API Endpoints:** 12
+- **HTML Pages:** 16
+
+---
+
+## 🎬 QUICK START URLS
+
+**First Time Setup:**
+1. Visit: `http://127.0.0.1:8000/register/`
+2. Login: `http://127.0.0.1:8000/login/`
+3. Dashboard: `http://127.0.0.1:8000/user/dashboard/`
+
+**Use the System:**
+1. Classify: `http://127.0.0.1:8000/` → Upload or Live Feed
+2. Check History: `http://127.0.0.1:8000/user/waste-history/`
+3. Earn Rewards: `http://127.0.0.1:8000/user/rewards/`
+
+**Admin Tasks:**
+1. Login: `http://127.0.0.1:8000/admin/`
+2. Manage everything from there!
+
+---
+
+## 💡 PRO TIPS
+
+**Test All URLs:**
+```powershell
+# Start server
+python manage.py runserver
+
+# Open in browser
+Start-Process "http://127.0.0.1:8000/"
+```
+
+**Camera IP Formats:**
+- ESP32-CAM: `192.168.4.1/stream`
+- DroidCam: `192_168_1_100:4747/video` ⚠️ Use underscores!
+
+**Filter Waste History:**
+- By type: `?type=plastic`
+- By date: `?from=2025-01-01&to=2025-12-31`
+- Combined: `?type=plastic&from=2025-11-01`
+
+---
+
+## 📚 DOCUMENTATION FILES
+
+All documentation is in your project root:
+
+1. `URL_REFERENCE.md` - Complete URL documentation
+2. `URL_MAP.md` - Visual URL structure map
+3. `SETUP_GUIDE.md` - Installation guide
+4. `FIXES_APPLIED.md` - What was fixed
+5. `QUICK_REFERENCE.txt` - This file
+
+---
+
+**Need Help?** Check the full documentation in URL_REFERENCE.md
+
+**Generated:** November 9, 2025 | **Status:** ✅ Production Ready

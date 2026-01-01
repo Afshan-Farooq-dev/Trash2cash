@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% load static %}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{% static 'Lesson/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+  </head>
+  <body class="bg-light">
+    <div class="sidebar" id="sidebar">
+      <h4 class="text-center py-3">Dashboard</h4>
+      <a href="#traffic-analytics" onclick="loadContent('traffic-analytics')">Live Detection</a>
+      <a href="#Ambulance" onclick="loadContent('Ambulance')">Upload Image</a>
+      <a href="#qr-scanner" onclick="loadContent('qr-scanner')">QR Scanner</a> <!-- Fixed: hyphenated ID -->
+    </div>
+    <div class="header">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div>
+        <!-- <h5>Admin Dashboard</h5> -->
+      </div>
+      <div>
+        <div class="profile-container">
+          <img src="" class="img-fluid" alt="" />
+        </div>
+      </div>
+    </div>
+    <div class="content" id="content">
+      <div id="content-area" class="content-area">
+        <!-- Traffic analytics -->
+        <div id="traffic-analytics" style="display: none;"> <!-- Fixed: no space in ID -->
+          <div class="card bg-light col-12 col-md-4 mx-auto d-flex justify-content-center align-items-center" style="margin-top:200px !important">
+            <div class="container">
+              <div class="row d-flex justify-content-center align-items-center mt-5">
+                <h5 class="text-center p-2" id="onei">Enter Ip Address</h5>
+                <div class="d-flex justify-content-center align-items-center">
+                  <input type="text" class="form-control w-50 mx-2 mt-3 text-center" id="ip_address" placeholder="192.168.4.1:81/stream for ESP32 or 192_168_1_100:4747/video for DroidCam">
+                </div>
+              </div>
+            </div>
+            <div class="container d-flex justify-content-center align-items-center">
+              <div class="row">
+                <div class="d-flex justify-content-center align-items-center mb-3">
+                  <button type="button" class="btn btn-primary mt-2" id="live_feed_button" onclick="startLiveFeed()">Start Live Feed & Analyze</button>
+                  <button type="button" class="btn btn-secondary mt-2 ms-2" id="stop_feed_button" onclick="stopLiveFeed()" style="display: none;">Stop Feed</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="stream-container" class="container d-flex justify-content-center align-items-center mt-4" style="display: none;">
+            <img id="live-stream" class="img-fluid" style="max-width: 100%; height: 400px; object-fit: contain;" alt="Live Stream" />
+          </div>
+        </div>
+
+        <!-- Waste Classification -->
+        <div id="Ambulance" style="display: none">
+          <div class="container mb-4">
+            <h1 class="text-center fw-bold text-dark mb-4 mt-5">Waste Classification</h1>
+            <div class="container">
+              <div class="card">
+                <form id="ambulance-form" method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <input type="hidden" id="from_stream_flag" name="from_stream" value="0">
+                  <div class="bg-light-subtle p-4 rounded shadow w-100 mx-auto text-center" style="height: 640px">
+                    <input type="file" id="image-upload" name="img" accept="image/*" class="form-control mb-3" />
+                    <div id="image-container" class="border bg-white rounded d-flex align-items-center justify-content-center overflow-hidden mb-3" style="height: 440px">
+                      <span class="span text-secondary">Captured Frame Preview</span>
+                    </div>
+                    <h2 id="result-text" class="h5 text-secondary mb-3">Capture frame from live feed or upload an image to analyze</h2>
+                    <button type="button" id="analyze-btn" class="btn text-white w-100 mb-2" style="background-color: teal; color: white">Analyze</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <div id="prediction-result" class="alert alert-success text-center mt-4 w-100 mx-auto" style="max-width: 500px; display: none">
+              <h5 class="fw-bold">Detected Class:</h5>
+              <p id="prediction-text" class="h4 text-success fw-bold"></p>
+            </div>
+            <div id="action-buttons" class="mt-4 w-100 mx-auto text-center" style="max-width: 500px; display: none">
+              <h5 class="fw-bold text-dark mb-3">Open Compartment</h5>
+              <div class="d-flex flex-wrap justify-content-center gap-2">
+                <button class="btn btn-success btn-lg" onclick="triggerAuto(); return false;">Auto</button>
+                <button class="btn btn-success btn-lg" onclick="triggerAction('openlid'); return false;">Open Lid</button>
+                <button class="btn btn-success btn-lg" onclick="triggerAction('closelid'); return false;">Close Lid</button>
+                <button class="btn btn-success btn-lg" onclick="triggerAction('plastic'); return false;">Open Plastic</button>
+                <button class="btn btn-primary btn-lg" onclick="triggerAction('glass'); return false;">Open Glass</button>
+                <button class="btn btn-info btn-lg" onclick="triggerAction('paper'); return false;">Open Paper</button>
+                <button class="btn btn-warning btn-lg" onclick="triggerAction('metal'); return false;">Open Metal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Scanner Section -->
+        <div id="qr-scanner" style="display: none"> <!-- Fixed: no space in ID -->
+          <div class="container mb-4">
+            <h1 class="text-center fw-bold text-dark mb-4 mt-5">QR Code Scanner</h1>
+            <div class="container">
+              <div class="card">
+                <div class="bg-light-subtle p-4 rounded shadow w-100 mx-auto text-center" style="max-width: 800px">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h5 class="mb-3">Live QR Scanning</h5>
+                      <div class="mb-3">
+                        <input type="text" class="form-control text-center" id="qr_ip_address" placeholder="Enter camera IP for QR scanning" value="192.168.4.1/stream">
+                      </div>
+                      <div class="mb-3">
+                        <button type="button" class="btn btn-primary w-100" id="start_qr_scan" onclick="startQRScan()">Start QR Scanner</button>
+                        <button type="button" class="btn btn-secondary w-100 mt-2" id="stop_qr_scan" onclick="stopQRScan()" style="display: none;">Stop QR Scanner</button>
+                      </div>
+                      <div id="qr-stream-container" class="border bg-white rounded overflow-hidden mb-3" style="height: 300px; display: none;">
+                        <img id="qr-live-stream" class="img-fluid h-100 w-100" style="object-fit: contain;" alt="QR Scanner Stream" />
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <h5 class="mb-3">Scan Results</h5>
+                      <div id="qr-results" class="border bg-white rounded p-3" style="height: 300px; overflow-y: auto;">
+                        <span class="span text-muted">QR codes will appear here when detected...</span>
+                      </div>
+                      <div class="mt-3">
+                        <button type="button" class="btn btn-warning w-100" onclick="clearQRResults()">Clear Results</button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="row mt-4">
+                    <div class="col-12">
+                      <h5 class="mb-3">Upload Image for QR Detection</h5>
+                      <div class="d-flex justify-content-center align-items-center gap-3">
+                        <input type="file" id="qr-image-upload" accept="image/*" class="form-control w-50">
+                        <button type="button" class="btn btn-info" onclick="scanQRFromImage()">Scan QR from Image</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'Lesson/bootstrap.bundle.min.js' %}"></script>
+    <script>
+      let previewInterval = null;
+      let streamActive = false;
+      let baseDeviceIP = '192.168.4.81'; // Default without port; updated from input
+      let qrStreamActive = false;
+
+      // Global error handler
+      window.addEventListener('error', function(event) {
+        console.error('Global JS Error:', event.error);
+        console.error('Error message:', event.message);
+        console.error('Error stack:', event.error?.stack);
+        console.error('Filename:', event.filename, 'Line:', event.lineno, 'Column:', event.colno);
+      });
+
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('Unhandled Promise Rejection:', event.reason);
+      });
+
+      function triggerAction(action) {
+        console.log('DEBUG: triggerAction called with:', action);
+        const url = `http://192.168.4.81/${action}`;
+        console.log('DEBUG: Triggering action URL:', url);
+        try {
+          const request = new XMLHttpRequest();
+          request.open("GET", url, true);
+          request.timeout = 10000; // Increased timeout for slow ESP
+          request.onreadystatechange = function() {
+            if (request.readyState === 4) {
+              if (request.status === 200) {
+                console.log('DEBUG: Action', action, 'succeeded (status 200)');
+              } else {
+                console.error('DEBUG: Action', action, 'failed with status:', request.status, 'Response:', request.responseText);
+              }
+            }
+          };
+          request.ontimeout = function() {
+            console.error('DEBUG: Action', action, 'timed out after 5s');
+          };
+          request.onerror = function() {
+            console.error('DEBUG: Action', action, 'network error - Check CORS, IP, or ESP server');
+          };
+          request.send();
+        } catch (e) {
+          console.error('DEBUG: Exception in triggerAction for', action, ':', e);
+        }
+        return false;
+      }
+      function triggerAuto() {
+        console.log('DEBUG: triggerAuto called');
+        const prediction = document.getElementById("prediction-text").textContent.toLowerCase().trim();
+        console.log('DEBUG: Prediction text:', prediction);
+        let compartmentAction = null;
+
+        // Map prediction to compartment action
+        if (prediction.includes('plastic')) {
+          compartmentAction = 'plastic';
+        } else if (prediction.includes('glass')) {
+          compartmentAction = 'glass';
+        } else if (prediction.includes('cardboard') || prediction.includes('paper')) {
+          compartmentAction = 'paper';
+        } else if (prediction.includes('metal') || prediction.includes('trash')) {
+          compartmentAction = 'metal';
+        } else {
+          console.error('DEBUG: Unknown waste class:', prediction);
+          alert("Unknown waste class detected. Please use manual buttons.");
+          return;
+        }
+
+        console.log('DEBUG: Mapped compartment action:', compartmentAction);
+
+        // Disable all buttons during auto process
+        const buttons = document.querySelectorAll('#action-buttons button');
+        buttons.forEach(btn => btn.disabled = true);
+        console.log('DEBUG: Disabled buttons');
+
+        // Step 1: Open Lid
+        triggerAction('openlid');
+        console.log("Auto: Opening lid...");
+
+        // Step 2: Wait 2 seconds, then open compartment
+        setTimeout(() => {
+          triggerAction(compartmentAction);
+          console.log(`Auto: Opening ${compartmentAction} compartment...`);
+        }, 2000);
+
+        // Step 3: Wait another 3 seconds (total 5s from start), then close lid
+        setTimeout(() => {
+          triggerAction('closelid');
+          console.log("Auto: Closing lid...");
+          // Re-enable buttons after process
+          buttons.forEach(btn => btn.disabled = false);
+          console.log('DEBUG: Re-enabled buttons');
+        }, 5000);
+      }
+
+      function startLiveFeed() {
+        console.log('DEBUG: startLiveFeed called');
+        const ipAddress = document.getElementById("ip_address").value.trim();
+        console.log('DEBUG: IP Address entered:', ipAddress);
+        if (!ipAddress) {
+          console.error('DEBUG: No IP address provided');
+          alert("Please enter an IP address");
+          return;
+        }
+        if (ipAddress.includes('/stream')) {
+          baseDeviceIP = ipAddress.split('/')[0];
+          console.log('DEBUG: Updated baseDeviceIP:', baseDeviceIP);
+        }
+        console.log('DEBUG: Clearing capture state...');
+        fetch('/clear_capture_state/')
+          .then(res => {
+            console.log('DEBUG: Clear capture state response status:', res.status);
+            return res.json();
+          })
+          .then(data => {
+            console.log("🧹 Cleared previous capture state:", data);
+            const button = document.getElementById("live_feed_button");
+            const stopButton = document.getElementById("stop_feed_button");
+            button.style.display = "none";
+            stopButton.style.display = "inline-block";
+            const streamContainer = document.getElementById("stream-container");
+            streamContainer.style.display = "block";
+            const liveStreamImg = document.getElementById("live-stream");
+            const streamSrc = `/livefe/?ip=${encodeURIComponent(ipAddress)}&t=${Date.now()}`;
+            console.log('DEBUG: Setting live stream src:', streamSrc);
+            liveStreamImg.src = streamSrc;
+            streamActive = true;
+            console.log('DEBUG: Starting auto capture in 3s');
+            setTimeout(() => {
+              captureAndAnalyzeAuto();
+            }, 3000);
+          })
+          .catch(err => {
+            console.error("❌ Error clearing state:", err);
+            alert("Error preparing new capture session");
+          });
+      }
+
+      function checkForCapturedFrame() {
+        console.log('DEBUG: checkForCapturedFrame called');
+    
+        // ✅ Always clear interval before starting a new one
+        if (previewInterval) {
+            console.log('DEBUG: Clearing existing previewInterval');
+            clearInterval(previewInterval);
+            previewInterval = null;
+        }
+
+        console.log('DEBUG: Fetching has_captured_frame...');
+        fetch('/has_captured_frame/')
+            .then(response => {
+                console.log('DEBUG: has_captured_frame response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log("DEBUG: has_frame response:", data);
+
+                if (data.has_frame) {
+                    console.log('DEBUG: Frame captured, updating preview');
+                    const container = document.getElementById("image-container");
+                    const previewSrc = "/get_captured_frame/?t=" + Date.now();
+                    console.log('DEBUG: Setting preview src:', previewSrc);
+                    container.innerHTML =
+                        '<img id="preview-img" src="' + previewSrc +
+                        '" class="img-fluid h-100 w-auto d-block mx-auto" style="object-fit: contain; max-height: 100%;" />';
+
+                    document.getElementById("from_stream_flag").value = "1";
+                    document.getElementById("result-text").textContent =
+                        "Using captured frame from live stream. Click Analyze to process.";
+
+                    // ✅ Start ONLY ONE interval
+                    previewInterval = setInterval(() => {
+                        console.log('DEBUG: Updating preview via interval');
+                        const previewImg = document.getElementById("preview-img");
+                        if (previewImg) {
+                            previewImg.src = "/get_captured_frame/?t=" + Date.now();
+                        } else {
+                            console.error('DEBUG: preview-img not found in interval');
+                        }
+                    }, 1000);
+                    console.log('DEBUG: Started previewInterval');
+
+                } else {
+                    // No new frame
+                    console.log('DEBUG: No frame captured');
+                    document.getElementById("from_stream_flag").value = "0";
+                    document.getElementById("result-text").textContent =
+                        "Capture frame from live feed or upload an image to analyze";
+                }
+            })
+            .catch(error => {
+                console.error("Error checking captured frame:", error);
+            });
+      }
+
+      function captureAndAnalyzeAuto() {
+        console.log('DEBUG: captureAndAnalyzeAuto called');
+        const btn = document.getElementById("live_feed_button");
+        btn.textContent = "Capturing...";
+        btn.disabled = true;
+        console.log('DEBUG: Fetching capture_frame...');
+        fetch('/capture_frame/')
+          .then(res => {
+            console.log('DEBUG: capture_frame response status:', res.status);
+            return res.json();
+          })
+          .then(data => {
+            console.log("📸 capture_frame:", data);
+            if (data.status === 'success') {
+              console.log('DEBUG: Capture successful, stopping display and loading Ambulance');
+              stopLiveFeedDisplay();
+              setTimeout(() => {
+                loadContent('Ambulance');
+                setTimeout(() => {
+                  if (document.getElementById("from_stream_flag").value !== "1") {
+                    console.log('DEBUG: Checking for captured frame after load');
+                    checkForCapturedFrame();
+                  } else {
+                    console.log('DEBUG: from_stream_flag already set to 1');
+                  }
+                  setTimeout(() => {
+                    console.log('DEBUG: Auto-clicking analyze-btn');
+                    document.getElementById("analyze-btn").click();
+                  }, 300);
+                }, 1000);
+              }, 300);
+            } else {
+              console.error('DEBUG: Capture failed:', data.message);
+              alert("⚠️ " + data.message);
+              stopLiveFeedDisplay();
+            }
+          })
+          .catch(err => {
+            console.error("❌ Error capturing:", err);
+            alert("Error capturing frame");
+            stopLiveFeedDisplay();
+          })
+          .finally(() => {
+            console.log('DEBUG: Resetting button state');
+            btn.textContent = "Start Live Feed & Analyze";
+            btn.disabled = false;
+          });
+      }
+
+      function stopLiveFeedDisplay() {
+        console.log('DEBUG: stopLiveFeedDisplay called');
+        const button = document.getElementById("live_feed_button");
+        const stopButton = document.getElementById("stop_feed_button");
+        button.style.display = "inline-block";
+        stopButton.style.display = "none";
+        const streamContainer = document.getElementById("stream-container");
+        streamContainer.style.display = "none";
+        const liveStreamImg = document.getElementById("live-stream");
+        liveStreamImg.src = "";
+        streamActive = false;
+        console.log('DEBUG: Live feed display stopped');
+      }
+
+      function stopLiveFeed() {
+        console.log('DEBUG: stopLiveFeed called');
+        stopLiveFeedDisplay();
+        fetch('/stop_stream/', {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        })
+        .then(res => {
+            console.log('DEBUG: stop_stream response status:', res.status);
+        })
+        .catch(error => {
+          console.error('Error stopping stream:', error);
+        });
+      }
+
+      // QR Scanner Functions
+      function startQRScan() {
+        console.log('DEBUG: startQRScan called');
+        const ipAddress = document.getElementById("qr_ip_address").value.trim();
+        console.log('DEBUG: QR IP Address:', ipAddress);
+        if (!ipAddress) {
+          console.error('DEBUG: No QR IP address provided');
+          alert("Please enter an IP address for QR scanning");
+          return;
+        }
+
+        const startBtn = document.getElementById("start_qr_scan");
+        const stopBtn = document.getElementById("stop_qr_scan");
+        const streamContainer = document.getElementById("qr-stream-container");
+        
+        startBtn.style.display = "none";
+        stopBtn.style.display = "block";
+        streamContainer.style.display = "block";
+        
+        const qrStreamImg = document.getElementById("qr-live-stream");
+        const qrStreamSrc = `/qr_stream/?ip=${encodeURIComponent(ipAddress)}&t=${Date.now()}`;
+        console.log('DEBUG: Setting QR stream src:', qrStreamSrc);
+        qrStreamImg.src = qrStreamSrc;
+        qrStreamActive = true;
+
+        // Start checking for QR results
+        console.log('DEBUG: Starting QR result polling');
+        startQRResultPolling();
+      }
+
+      function stopQRScan() {
+        console.log('DEBUG: stopQRScan called');
+        const startBtn = document.getElementById("start_qr_scan");
+        const stopBtn = document.getElementById("stop_qr_scan");
+        const streamContainer = document.getElementById("qr-stream-container");
+        
+        startBtn.style.display = "block";
+        stopBtn.style.display = "none";
+        streamContainer.style.display = "none";
+        
+        const qrStreamImg = document.getElementById("qr-live-stream");
+        qrStreamImg.src = "";
+        qrStreamActive = false;
+
+        // Stop polling for results
+        console.log('DEBUG: Stopping QR result polling');
+        stopQRResultPolling();
+        
+        // Stop the QR stream on backend
+        fetch('/stop_qr_stream/', {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        })
+        .then(res => {
+            console.log('DEBUG: stop_qr_stream response status:', res.status);
+        })
+        .catch(error => {
+          console.error('Error stopping QR stream:', error);
+        });
+      }
+
+      let qrPollingInterval = null;
+
+      function startQRResultPolling() {
+        console.log('DEBUG: startQRResultPolling called');
+        // Clear any existing interval
+        if (qrPollingInterval) {
+          console.log('DEBUG: Clearing existing qrPollingInterval');
+          clearInterval(qrPollingInterval);
+        }
+        
+        // Poll for new QR results every second
+        qrPollingInterval = setInterval(() => {
+          console.log('DEBUG: Polling for QR results');
+          fetch('/get_qr_results/')
+            .then(response => {
+                console.log('DEBUG: get_qr_results response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+              if (data.qr_codes && data.qr_codes.length > 0) {
+                console.log('DEBUG: New QR codes detected:', data.qr_codes);
+                updateQRResults(data.qr_codes);
+              } else {
+                console.log('DEBUG: No new QR codes');
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching QR results:', error);
+            });
+        }, 1000);
+        console.log('DEBUG: qrPollingInterval started');
+      }
+
+      function stopQRResultPolling() {
+        console.log('DEBUG: stopQRResultPolling called');
+        if (qrPollingInterval) {
+          clearInterval(qrPollingInterval);
+          qrPollingInterval = null;
+          console.log('DEBUG: qrPollingInterval cleared');
+        }
+      }
+
+      function updateQRResults(qrCodes) {
+        console.log('DEBUG: updateQRResults called with:', qrCodes);
+        const resultsContainer = document.getElementById("qr-results");
+        let html = '';
+        
+        qrCodes.forEach((qr, index) => {
+          const timestamp = new Date().toLocaleTimeString();
+          html += `
+            <div class="alert alert-success mb-2">
+              <strong>QR Code ${index + 1}:</strong><br>
+              <strong>Data:</strong> ${qr.data}<br>
+              <strong>Type:</strong> ${qr.type}<br>
+              <small class="text-muted">Detected at: ${timestamp}</small>
+            </div>
+          `;
+        });
+        
+        resultsContainer.innerHTML = html;
+        resultsContainer.scrollTop = resultsContainer.scrollHeight;
+        console.log('DEBUG: QR results updated in UI');
+      }
+
+      function clearQRResults() {
+        console.log('DEBUG: clearQRResults called');
+        const resultsContainer = document.getElementById("qr-results");
+        resultsContainer.innerHTML = '<p class="text-muted">QR codes will appear here when detected...</p>';
+        
+        // Clear backend results as well
+        fetch('/clear_qr_results/', {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        })
+        .then(res => {
+            console.log('DEBUG: clear_qr_results response status:', res.status);
+        })
+        .catch(error => {
+          console.error('Error clearing QR results:', error);
+        });
+      }
+
+      function scanQRFromImage() {
+        console.log('DEBUG: scanQRFromImage called');
+        const fileInput = document.getElementById("qr-image-upload");
+        const file = fileInput.files[0];
+        
+        if (!file) {
+          console.error('DEBUG: No file selected for QR scan');
+          alert("Please select an image file");
+          return;
+        }
+        console.log('DEBUG: Selected file for QR scan:', file.name);
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        fetch('/scan_qr_from_image/', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        })
+        .then(response => {
+            console.log('DEBUG: scan_qr_from_image response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+          console.log('DEBUG: scan_qr_from_image response:', data);
+          if (data.qr_codes && data.qr_codes.length > 0) {
+            updateQRResults(data.qr_codes);
+          } else {
+            console.log('DEBUG: No QR codes found in image');
+            alert("No QR codes found in the image");
+          }
+        })
+        .catch(error => {
+          console.error('Error scanning QR from image:', error);
+          alert("Error scanning QR code from image");
+        });
+      }
+
+      // Existing functions (keep all your existing functions below)
+      function updatePreview() {
+        console.log('DEBUG: updatePreview called');
+        const previewImg = document.getElementById("preview-img");
+        if (previewImg) {
+          previewImg.src = `/get_captured_frame/?t=${Date.now()}`;
+          console.log('DEBUG: Preview updated');
+        } else {
+          console.error('DEBUG: preview-img not found');
+        }
+      }
+
+      const sidebar = document.getElementById("sidebar");
+      const content = document.getElementById("content");
+
+      function toggleSidebar() {
+        console.log('DEBUG: toggleSidebar called, width:', window.innerWidth);
+        if (window.innerWidth <= 768) {
+          sidebar.classList.toggle("show");
+          console.log('DEBUG: Sidebar toggled');
+        }
+      }
+
+      function loadContent(section) {
+        console.log('DEBUG: loadContent called with section:', section);
+        if (previewInterval) {
+          console.log('DEBUG: Clearing previewInterval on load');
+          clearInterval(previewInterval);
+          previewInterval = null;
+        }
+
+        // Stop QR scanning if switching away from QR Scanner
+        if (section !== "qr-scanner" && qrStreamActive) { // Fixed: hyphenated check
+          console.log('DEBUG: Stopping QR scan on section change');
+          stopQRScan();
+        }
+
+        document.querySelectorAll(".content-area > div").forEach((div) => {
+          div.style.display = "none";
+        });
+
+        const selectedSection = document.getElementById(section);
+        if (selectedSection) {
+          selectedSection.style.display = "block";
+          console.log('DEBUG: Section', section, 'displayed');
+         
+          if (section === "Ambulance") {
+            console.log('DEBUG: Resetting Ambulance form');
+            resetAmbulanceForm();
+            checkForCapturedFrame();
+          }
+        } else {
+          console.error('DEBUG: Section not found:', section);
+        }
+
+        window.location.hash = section; // Fixed: no space replacement needed (hyphens already)
+       
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove("show");
+          console.log('DEBUG: Hidden sidebar on mobile');
+        }
+      }
+
+      function resetAmbulanceForm() {
+        console.log('DEBUG: resetAmbulanceForm called');
+        if (previewInterval) {
+          console.log('DEBUG: Clearing previewInterval in reset');
+          clearInterval(previewInterval);
+          previewInterval = null;
+        }
+        document.getElementById("image-upload").value = "";
+        document.getElementById("from_stream_flag").value = "0";
+        document.getElementById("image-container").innerHTML =
+          '<span class="text-secondary">Captured Frame Preview</span>';
+        document.getElementById("result-text").textContent =
+          "Capture frame from live feed or upload an image to analyze";
+        document.getElementById("prediction-result").style.display = "none";
+        document.getElementById("action-buttons").style.display = "none";
+        console.log('DEBUG: Ambulance form reset');
+      }
+
+      function checkInitialHash() {
+        console.log('DEBUG: checkInitialHash called');
+        const hash = window.location.hash.substring(1); // Fixed: no space replacement (hyphens already)
+        console.log('DEBUG: Initial hash:', hash);
+        const validSections = ["traffic-analytics", "Ambulance", "qr-scanner"]; // Fixed: hyphenated names
+       
+        if (hash && validSections.includes(hash)) {
+          console.log('DEBUG: Loading from hash:', hash);
+          loadContent(hash);
+        } else {
+          console.log('DEBUG: Defaulting to traffic-analytics (Live Detection)');
+          loadContent("traffic-analytics");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log('DEBUG: DOMContentLoaded fired');
+        checkInitialHash();
+        document.getElementById("ip_address").value = "192.168.4.1:81/stream";
+        document.getElementById("qr_ip_address").value = "192.168.4.1:81/stream";
+       
+        window.addEventListener("hashchange", function () {
+          const hash = window.location.hash.substring(1); // Fixed: no space replacement
+          console.log('DEBUG: Hash changed to:', hash);
+          if (hash) {
+            loadContent(hash);
+          }
+        });
+      });
+
+      document.getElementById("image-upload").addEventListener("change", function (event) {
+        console.log('DEBUG: image-upload change event');
+        const file = event.target.files[0];
+        if (file) {
+          console.log('DEBUG: File selected:', file.name);
+          document.getElementById("from_stream_flag").value = "0";
+          if (previewInterval) {
+            console.log('DEBUG: Clearing previewInterval on file upload');
+            clearInterval(previewInterval);
+            previewInterval = null;
+          }
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const imageUrl = e.target.result;
+            console.log('DEBUG: Setting image preview');
+            document.getElementById("image-container").innerHTML =
+              '<img src="' + imageUrl + '" class="img-fluid h-100 w-auto d-block mx-auto" style="object-fit: contain; max-height: 100%;" />';
+            document.getElementById("result-text").textContent = "Click Analyze to process image";
+          };
+          reader.onerror = function(e) {
+            console.error('DEBUG: FileReader error:', e);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      document.getElementById("analyze-btn").addEventListener("click", function () {
+        console.log('DEBUG: analyze-btn click event');
+        const form = document.getElementById("ambulance-form");
+        const formData = new FormData(form);
+        const fromStream = document.getElementById("from_stream_flag").value === "1";
+       
+        console.log("DEBUG: fromStream flag before POST:", fromStream);
+       
+        if (!fromStream && !document.getElementById("image-upload").files[0]) {
+          console.error('DEBUG: No image or stream frame available');
+          alert("Please select an image first or capture frame from live stream");
+          return;
+        }
+
+        this.disabled = true;
+        this.textContent = "Analyzing...";
+        const url = "{% url 'dashboard' %}";
+        console.log('DEBUG: Posting to analyze URL:', url);
+        fetch(url, {
+          method: "POST",
+          body: formData,
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        })
+          .then((response) => {
+            console.log('DEBUG: Analyze response status:', response.status);
+            return response.json();
+          })
+          .then((data) => {
+            console.log("DEBUG: Dashboard response:", data);
+            if (data.error) {
+              console.error('DEBUG: Analysis error:', data.error);
+              alert(data.error);
+            } else {
+              console.log('DEBUG: Analysis success, prediction:', data.prediction);
+              document.getElementById("prediction-text").textContent = data.prediction;
+              document.getElementById("prediction-result").style.display = "block";
+              document.getElementById("action-buttons").style.display = "block";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("An error occurred during analysis");
+          })
+          .finally(() => {
+            console.log('DEBUG: Resetting analyze button');
+            this.disabled = false;
+            this.textContent = "Analyze";
+          });
+      });
+
+      window.addEventListener("click", (e) => {
+        if (!sidebar.contains(e.target) && e.target.className !== "menu-toggle" && window.innerWidth <= 768) {
+          sidebar.classList.remove("show");
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+
+{% block title %}Redemption History - TRASH2CASH{% endblock %}
+
+{% block extra_css %}
+<style>
+    .history-container {
+        padding: 2rem 0;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h2 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-bar {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .filter-btn:hover {
+        border-color: #2ecc71;
+    }
+
+    .filter-btn.active {
+        background: #2ecc71;
+        color: white;
+        border-color: #2ecc71;
+    }
+
+    .redemption-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+    }
+
+    .redemption-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .category-badge {
+        font-size: 2rem;
+        margin-right: 0.5rem;
+    }
+
+    .card-title {
+        display: flex;
+        align-items: center;
+    }
+
+    .card-title h4 {
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-approved {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .status-completed {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .card-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .detail-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .voucher-code {
+        background: #2ecc71;
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        font-family: 'Courier New', monospace;
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+        margin-top: 1rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .card-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-container container">
+    <div class="page-header">
+        <h2>📜 Redemption History</h2>
+        <p>Track all your point redemptions and their status</p>
+    </div>
+
+    <div class="filter-bar">
+        <span style="font-weight: 600;">Filter by:</span>
+        <button class="filter-btn active" onclick="filterCategory('all')">All</button>
+        <button class="filter-btn" onclick="filterCategory('electricity')"><i class="bi bi-lightning-charge-fill"></i> Electricity</button>
+        <button class="filter-btn" onclick="filterCategory('gas')"><i class="bi bi-fire"></i> Gas</button>
+        <button class="filter-btn" onclick="filterCategory('voucher')"><i class="bi bi-ticket-perforated-fill"></i> Voucher</button>
+        <button class="filter-btn" onclick="filterCategory('charity')"><i class="bi bi-heart-fill"></i> Charity</button>
+    </div>
+
+    {% if redemptions %}
+        {% for redemption in redemptions %}
+            <div class="redemption-card" data-category="{{ redemption.category }}">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="category-badge">
+                            {% if redemption.category == 'electricity' %}<i class="bi bi-lightning-charge-fill"></i>
+                            {% elif redemption.category == 'gas' %}<i class="bi bi-fire"></i>
+                            {% elif redemption.category == 'voucher' %}<i class="bi bi-ticket-perforated-fill"></i>
+                            {% elif redemption.category == 'charity' %}<i class="bi bi-heart-fill"></i>
+                            {% endif %}
+                        </span>
+                        <div>
+                            <h4>{{ redemption.get_category_display }}</h4>
+                            <small style="color: #6c757d;">{{ redemption.created_at|date:"M d, Y - h:i A" }}</small>
+                        </div>
+                    </div>
+                    <span class="status-badge status-{{ redemption.status }}">
+                        {{ redemption.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="card-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Points Redeemed</div>
+                        <div class="detail-value">{{ redemption.points_redeemed }} pts</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">PKR Value</div>
+                        <div class="detail-value">PKR {{ redemption.pkr_value }}</div>
+                    </div>
+
+                    {% if redemption.category == 'electricity' %}
+                        <div class="detail-item">
+                            <div class="detail-label">Provider</div>
+                            <div class="detail-value">{{ redemption.get_provider_name_display }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Reference Number</div>
+                            <div class="detail-value">{{ redemption.reference_number }}</div>
+                        </div>
+                        {% if redemption.bill_amount %}
+                        <div class="detail-item">
+                            <div class="detail-label">Bill Amount</div>
+                            <div class="detail-value">PKR {{ redemption.bill_amount }}</div>
+                        </div>
+                        {% endif %}
+                    {% elif redemption.category == 'gas' %}
+                        <div class="detail-item">
+                            <div class="detail-label">Gas Company</div>
+                            <div class="detail-value">{{ redemption.get_provider_name_display }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Consumer Number</div>
+                            <div class="detail-value">{{ redemption.reference_number }}</div>
+                        </div>
+                        {% if redemption.bill_amount %}
+                        <div class="detail-item">
+                            <div class="detail-label">Bill Amount</div>
+                            <div class="detail-value">PKR {{ redemption.bill_amount }}</div>
+                        </div>
+                        {% endif %}
+                    {% elif redemption.category == 'voucher' %}
+                        <div class="detail-item">
+                            <div class="detail-label">Partner</div>
+                            <div class="detail-value">{{ redemption.voucher_partner }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Voucher Type</div>
+                            <div class="detail-value">{{ redemption.voucher_type }}</div>
+                        </div>
+                        {% if redemption.expiry_date %}
+                        <div class="detail-item">
+                            <div class="detail-label">Expires On</div>
+                            <div class="detail-value">{{ redemption.expiry_date|date:"M d, Y" }}</div>
+                        </div>
+                        {% endif %}
+                    {% elif redemption.category == 'charity' %}
+                        <div class="detail-item">
+                            <div class="detail-label">Charity</div>
+                            <div class="detail-value">{{ redemption.charity_name }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Donation Amount</div>
+                            <div class="detail-value">PKR {{ redemption.pkr_value }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if redemption.category == 'voucher' and redemption.voucher_code and redemption.status == 'completed' %}
+                    <div class="voucher-code">
+                        <i class="bi bi-ticket-detailed-fill"></i> {{ redemption.voucher_code }}
+                    </div>
+                    <p style="text-align: center; margin-top: 0.5rem; color: #6c757d;">
+                        Show this code at {{ redemption.voucher_partner }}
+                    </p>
+                {% endif %}
+
+                {% if redemption.completed_at %}
+                    <p style="color: #0f5132; margin-top: 1rem; font-weight: 600;">
+                        ✅ Completed on {{ redemption.completed_at|date:"M d, Y - h:i A" }}
+                    </p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <h3>No Redemptions Yet</h3>
+            <p>You haven't redeemed any points yet. Start earning and redeem for exciting rewards!</p>
+            <a href="{% url 'redeem_points' %}" class="btn btn-success" style="margin-top: 1rem;">
+                Redeem Points Now
+            </a>
+        </div>
+    {% endif %}
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="{% url 'user_dashboard' %}" class="btn btn-outline-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+function filterCategory(category) {
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Filter cards
+    document.querySelectorAll('.redemption-card').forEach(card => {
+        if (category === 'all') {
+            card.style.display = 'block';
+        } else {
+            card.style.display = card.dataset.category === category ? 'block' : 'none';
+        }
+    });
+}
+</script>
+{% endblock %}
