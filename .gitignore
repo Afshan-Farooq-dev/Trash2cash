@@ -89,5 +89,9 @@ media/issue_reports/
 *.elf
 *.map
 
+# Test files (for development only, not for production)
+test_*.py
+scripts/test_*.py
+
 # Specific script outputs or test files (if any)
 # Add any other project-specific files to ignore here
