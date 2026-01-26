@@ -1,0 +1,23 @@
+# Files to ignore during Railway deployment
+
+_.pyc
+**pycache**/
+_.sqlite3
+db.sqlite3
+_.log
+.env
+.venv/
+venv/
+env/
+media/
+staticfiles/
+.git/
+.gitignore
+_.md
+!README.md
+!ARCHITECTURE.md
+archive_docs/
+tests/
+\*.test.py
+.vscode/
+.idea/

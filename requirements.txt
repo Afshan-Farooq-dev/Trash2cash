@@ -4,12 +4,12 @@ Django>=5.1.0,<5.2.0
 # Environment Variables
 python-decouple>=3.8
 
-# AI/ML Libraries
-tensorflow>=2.15.0
+# AI/ML Libraries (Lite versions for deployment)
+tensorflow-cpu>=2.15.0  # CPU-only version (smaller, faster build)
 keras>=3.0.0
 
-# Computer Vision
-opencv-python>=4.8.0
+# Computer Vision (Headless for servers)
+opencv-python-headless>=4.8.0  # No GUI dependencies
 Pillow>=10.0.0
 
 # QR Code Detection

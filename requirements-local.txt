@@ -1,0 +1,33 @@
+# Local Development Requirements (Full versions)
+# Use this for local: pip install -r requirements-local.txt
+
+# Django Framework
+Django>=5.1.0,<5.2.0
+
+# Environment Variables
+python-decouple>=3.8
+
+# AI/ML Libraries (FULL VERSION)
+tensorflow>=2.15.0  # GPU support
+keras>=3.0.0
+
+# Computer Vision (FULL VERSION)
+opencv-python>=4.8.0  # With GUI
+Pillow>=10.0.0
+
+# QR Code Detection
+pyzbar>=0.1.9
+
+# Groq API for Chatbot
+groq>=0.4.0
+
+# Data Processing
+numpy>=1.24.0
+
+# Production Server (for testing)
+gunicorn>=21.2.0
+whitenoise>=6.6.0
+
+# PostgreSQL Database
+psycopg2-binary>=2.9.9
+dj-database-url>=2.1.0
