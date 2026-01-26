@@ -9,7 +9,8 @@ Write-Host "Checking Python installation..." -ForegroundColor Cyan
 try {
     $pythonVersion = python --version 2>&1
     Write-Host "✅ $pythonVersion" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ Python not found! Please install Python 3.8+ from python.org" -ForegroundColor Red
     exit 1
 }
@@ -18,9 +19,11 @@ try {
 Write-Host "`nCreating virtual environment..." -ForegroundColor Cyan
 if (Test-Path ".venv") {
     Write-Host "⚠️  Virtual environment already exists, skipping..." -ForegroundColor Yellow
-} elseif (Test-Path "venv") {
+}
+elseif (Test-Path "venv") {
     Write-Host "⚠️  Old virtual environment found, skipping..." -ForegroundColor Yellow
-} else {
+}
+else {
     python -m venv .venv
     Write-Host "✅ Virtual environment created" -ForegroundColor Green
 }
@@ -30,10 +33,12 @@ Write-Host "`nActivating virtual environment..." -ForegroundColor Cyan
 if (Test-Path ".\.venv\Scripts\Activate.ps1") {
     & ".\.venv\Scripts\Activate.ps1"
     Write-Host "✅ Virtual environment activated (.venv)" -ForegroundColor Green
-} elseif (Test-Path ".\venv\Scripts\Activate.ps1") {
+}
+elseif (Test-Path ".\venv\Scripts\Activate.ps1") {
     & ".\venv\Scripts\Activate.ps1"
     Write-Host "✅ Virtual environment activated (venv)" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "❌ Virtual environment not found!" -ForegroundColor Red
     exit 1
 }
@@ -61,13 +66,14 @@ if ($createSuperuser -eq "Y" -or $createSuperuser -eq "y") {
     Write-Host "`nCreating superuser..." -ForegroundColor Cyan
     python manage.py createsuperuser
     Write-Host "✅ Superuser created" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "⚠️  Skipping superuser creation. You can create one later with: python manage.py createsuperuser" -ForegroundColor Yellow
 }
 
 # Start server
 Write-Host "`n================================================" -ForegroundColor Green
-Write-Host "🎉 Setup Complete!" -ForegroundColor Green
+Write-Host "Setup Complete!" -ForegroundColor Green
 Write-Host "================================================" -ForegroundColor Green
 Write-Host "`nStarting development server..." -ForegroundColor Cyan
 Write-Host "`nYour application will be available at:" -ForegroundColor White

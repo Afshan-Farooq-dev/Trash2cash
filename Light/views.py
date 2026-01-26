@@ -10,7 +10,7 @@ import json
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.models import load_model
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse, StreamingHttpResponse, HttpResponseServerError, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
@@ -258,6 +258,13 @@ def qr_gen(camera):
             break
 
 # ---------------------------- VIEWS ---------------------------- #
+def landing(request):
+    """Landing page for public visitors"""
+    # Redirect authenticated users to their dashboard
+    if request.user.is_authenticated:
+        return redirect('user_dashboard')
+    return render(request, 'landing.html')
+
 def dashboard(request):
     """Dashboard view for image classification"""
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':

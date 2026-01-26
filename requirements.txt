@@ -1,6 +1,9 @@
 # Django Framework
 Django>=5.1.0,<5.2.0
 
+# Environment Variables
+python-decouple>=3.8
+
 # AI/ML Libraries
 tensorflow>=2.15.0
 keras>=3.0.0
@@ -12,6 +15,9 @@ Pillow>=10.0.0
 # QR Code Detection
 pyzbar>=0.1.9
 
+# Groq API for Chatbot
+groq>=0.4.0
+
 # Data Processing
 numpy>=1.24.0
 
@@ -19,6 +25,14 @@ numpy>=1.24.0
 # SQLite3 is included with Python, but for production consider:
 # psycopg2-binary>=2.9.9  # PostgreSQL
 # mysqlclient>=2.2.0      # MySQL
+
+# Production Server
+gunicorn>=21.2.0
+whitenoise>=6.6.0
+
+# PostgreSQL Database
+psycopg2-binary>=2.9.9
+dj-database-url>=2.1.0
 
 # Optional: Development Tools
 # python-decouple>=3.8    # Environment variables

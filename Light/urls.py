@@ -1,11 +1,16 @@
 from django.urls import path
-from . import views, user_views, mobile_api, qr_disposal_api
+from . import views, user_views, mobile_api, qr_disposal_api, chatbot
 
 urlpatterns = [
     # ========================================
+    # Landing Page
+    # ========================================
+    path('', user_views.landing, name='landing'),
+    
+    # ========================================
     # Main Dashboard & AI Features
     # ========================================
-    path('', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('livefe/', views.livefe, name='livefe'),
     path('capture_frame/', views.capture_frame, name='capture_frame'),
     path('get_captured_frame/', views.get_captured_frame, name='get_captured_frame'),
@@ -40,6 +45,7 @@ urlpatterns = [
     path('login/', user_views.user_login, name='login'),
     path('register/', user_views.user_register, name='register'),
     path('logout/', user_views.user_logout, name='logout'),
+    path('forgot-password/', user_views.forgot_password, name='forgot_password'),
     
     # ========================================
     # User Dashboard & Profile
@@ -91,6 +97,12 @@ urlpatterns = [
     # ========================================
     path('user/notifications/', user_views.notifications, name='notifications'),
     path('user/notifications/<int:notification_id>/read/', user_views.mark_notification_as_read, name='mark_notification_as_read'),
+    
+    # ========================================
+    # Chatbot API
+    # ========================================
+    path('api/chatbot/message/', chatbot.chatbot_message, name='chatbot_message'),
+    path('api/chatbot/health/', chatbot.chatbot_health, name='chatbot_health'),
     
     # Admin interfaces are handled by Django's built-in admin at /admin/
     # Removed custom admin UI and routes to avoid duplication with Django admin.

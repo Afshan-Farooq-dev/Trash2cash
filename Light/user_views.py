@@ -19,6 +19,17 @@ from .forms import (
 )
 
 # ================================
+# LANDING PAGE
+# ================================
+
+def landing(request):
+    """Landing page for visitors"""
+    if request.user.is_authenticated:
+        return redirect('user_dashboard')
+    return render(request, 'landing.html')
+
+
+# ================================
 # USER / AUTH / DASHBOARD VIEWS
 # ================================
 
@@ -101,6 +112,12 @@ def user_logout(request):
     """Logout user"""
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
+    return redirect('login')
+
+
+def forgot_password(request):
+    """Password reset functionality"""
+    messages.info(request, 'Password reset feature coming soon. Please contact admin for assistance.')
     return redirect('login')
 
 

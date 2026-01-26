@@ -4,402 +4,535 @@
 
 {% block extra_css %}
 <style>
-    .page-header {
-        margin-bottom: 2rem;
-    }
+  :root {
+    --primary-green: #2f855a;
+    --secondary-blue: #2b6cb0;
+    --accent: #38b2ac;
+    --light-bg: #f7fafc;
+  }
 
-    .page-title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-    }
+  .page-header {
+    margin-bottom: 2rem;
+  }
 
-    .page-subtitle {
-        color: #7f8c8d;
-    }
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+  }
 
-    /* Stats Cards */
+  .page-subtitle {
+    color: #718096;
+    font-size: 1rem;
+  }
+
+  /* Stats Cards */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .summary-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .summary-card.plastic {
+    border-color: #3b82f6;
+  }
+  .summary-card.paper {
+    border-color: var(--primary-green);
+  }
+  .summary-card.metal {
+    border-color: #718096;
+  }
+  .summary-card.glass {
+    border-color: var(--accent);
+  }
+  .summary-card.total {
+    border-color: var(--secondary-blue);
+  }
+
+  .summary-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.3rem;
+  }
+
+  .summary-label {
+    color: #718096;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  /* Filter Section */
+  .filter-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+  }
+
+  .filter-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .filter-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+  }
+
+  .filter-select,
+  .filter-input {
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    background: var(--light-bg);
+    color: #1a202c;
+    transition: all 0.3s;
+  }
+
+  .filter-select:focus,
+  .filter-input:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(47, 133, 90, 0.1);
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .btn-filter {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-apply {
+    background: linear-gradient(
+      135deg,
+      var(--primary-green) 0%,
+      var(--accent) 100%
+    );
+    color: white;
+    box-shadow: 0 4px 12px rgba(47, 133, 90, 0.2);
+  }
+
+  .btn-apply:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(47, 133, 90, 0.3);
+  }
+
+  .btn-clear {
+    background: #e2e8f0;
+    color: #4a5568;
+  }
+
+  .btn-clear:hover {
+    background: #cbd5e0;
+    color: #2d3748;
+  }
+
+  /* History Table */
+  .history-table-container {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow-x: auto;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .history-table thead {
+    background: var(--light-bg);
+  }
+
+  .history-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #1a202c;
+    font-size: 0.9rem;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .history-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    color: #2d3748;
+  }
+
+  .history-table tbody tr:hover {
+    background: var(--light-bg);
+  }
+
+  .waste-badge {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .badge-plastic {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+  }
+  .badge-paper {
+    background: rgba(47, 133, 90, 0.15);
+    color: var(--primary-green);
+  }
+  .badge-metal {
+    background: rgba(113, 128, 150, 0.15);
+    color: #718096;
+  }
+  .badge-glass {
+    background: rgba(56, 178, 172, 0.15);
+    color: var(--accent);
+  }
+
+  .points-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 700;
+    background: linear-gradient(
+      135deg,
+      var(--primary-green) 0%,
+      var(--accent) 100%
+    );
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(47, 133, 90, 0.2);
+  }
+
+  .bin-name {
+    color: #718096;
+    font-size: 0.85rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #a0aec0;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .empty-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-subtext {
+    font-size: 0.9rem;
+  }
+
+  /* Export Button */
+  .export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: white;
+    border: 2px solid var(--primary-green);
+    color: var(--primary-green);
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+
+  .export-btn:hover {
+    background: var(--primary-green);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(47, 133, 90, 0.2);
+  }
+
+  @media (max-width: 768px) {
     .summary-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .summary-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        border-left: 4px solid;
-    }
-
-    .summary-card.plastic { border-color: #3498db; }
-    .summary-card.paper { border-color: #2ecc71; }
-    .summary-card.metal { border-color: #95a5a6; }
-    .summary-card.glass { border-color: #1abc9c; }
-    .summary-card.total { border-color: #9b59b6; }
-
-    .summary-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #2c3e50;
-        margin-bottom: 0.3rem;
-    }
-
-    .summary-label {
-        color: #7f8c8d;
-        font-size: 0.9rem;
-    }
-
-    /* Filter Section */
-    .filter-section {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        margin-bottom: 2rem;
-    }
-
-    .filter-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 1rem;
+      grid-template-columns: 1fr 1fr;
     }
 
     .filter-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
+      grid-template-columns: 1fr;
     }
 
-    .filter-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .filter-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-    }
-
-    .filter-select, .filter-input {
-        padding: 0.6rem;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        font-size: 0.9rem;
-    }
-
-    .filter-select:focus, .filter-input:focus {
-        outline: none;
-        border-color: #2ecc71;
-    }
-
-    .filter-buttons {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .btn-filter {
-        padding: 0.6rem 1.5rem;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .btn-apply {
-        background: #2ecc71;
-        color: white;
-    }
-
-    .btn-apply:hover {
-        background: #27ae60;
-    }
-
-    .btn-clear {
-        background: #e0e0e0;
-        color: #2c3e50;
-    }
-
-    .btn-clear:hover {
-        background: #d0d0d0;
-    }
-
-    /* History Table */
     .history-table-container {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        overflow-x: auto;
+      padding: 1rem;
     }
 
     .history-table {
-        width: 100%;
-        border-collapse: collapse;
+      font-size: 0.85rem;
     }
 
-    .history-table thead {
-        background: #f8f9fa;
-    }
-
-    .history-table th {
-        padding: 1rem;
-        text-align: left;
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 0.9rem;
-        border-bottom: 2px solid #e0e0e0;
-    }
-
+    .history-table th,
     .history-table td {
-        padding: 1rem;
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 0.9rem;
+      padding: 0.75rem 0.5rem;
     }
-
-    .history-table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .waste-badge {
-        display: inline-block;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-
-    .badge-plastic { background: rgba(52, 152, 219, 0.1); color: #3498db; }
-    .badge-paper { background: rgba(46, 204, 113, 0.1); color: #2ecc71; }
-    .badge-metal { background: rgba(149, 165, 166, 0.1); color: #95a5a6; }
-    .badge-glass { background: rgba(26, 188, 156, 0.1); color: #1abc9c; }
-
-    .points-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-        font-weight: 700;
-        color: #2ecc71;
-    }
-
-    .bin-name {
-        color: #7f8c8d;
-        font-size: 0.85rem;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: #95a5a6;
-    }
-
-    .empty-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-
-    .empty-text {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-subtext {
-        font-size: 0.9rem;
-    }
-
-    /* Export Button */
-    .export-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.6rem 1.2rem;
-        background: white;
-        border: 2px solid #2ecc71;
-        color: #2ecc71;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        text-decoration: none;
-    }
-
-    .export-btn:hover {
-        background: #2ecc71;
-        color: white;
-    }
-
-    @media (max-width: 768px) {
-        .summary-cards {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .filter-row {
-            grid-template-columns: 1fr;
-        }
-
-        .history-table-container {
-            padding: 1rem;
-        }
-
-        .history-table {
-            font-size: 0.85rem;
-        }
-
-        .history-table th,
-        .history-table td {
-            padding: 0.75rem 0.5rem;
-        }
-    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <!-- Page Header -->
 <div class="page-header">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h1 class="page-title">Waste History</h1>
-            <p class="page-subtitle">Track your recycling journey and environmental impact</p>
-        </div>
-        <a href="#" class="export-btn">
-            <i class="bi bi-download"></i>
-            Export CSV
-        </a>
+  <div
+    style="display: flex; justify-content: space-between; align-items: center"
+  >
+    <div>
+      <h1 class="page-title">Waste History</h1>
+      <p class="page-subtitle">
+        Track your recycling journey and environmental impact
+      </p>
     </div>
+    <a href="#" class="export-btn">
+      <i class="fas fa-download"></i>
+      Export CSV
+    </a>
+  </div>
 </div>
 
 <!-- Summary Cards -->
 <div class="summary-cards">
-    <div class="summary-card total">
-        <div class="summary-value">{{ stats.total_items|default:"0" }}</div>
-        <div class="summary-label">Total Items</div>
-    </div>
-    <div class="summary-card plastic">
-        <div class="summary-value">{{ stats.plastic|default:"0" }}</div>
-        <div class="summary-label">Plastic</div>
-    </div>
-    <div class="summary-card paper">
-        <div class="summary-value">{{ stats.paper|default:"0" }}</div>
-        <div class="summary-label">Paper</div>
-    </div>
-    <div class="summary-card metal">
-        <div class="summary-value">{{ stats.metal|default:"0" }}</div>
-        <div class="summary-label">Metal</div>
-    </div>
-    <div class="summary-card glass">
-        <div class="summary-value">{{ stats.glass|default:"0" }}</div>
-        <div class="summary-label">Glass</div>
-    </div>
+  <div class="summary-card total">
+    <div class="summary-value">{{ stats.total_items|default:"0" }}</div>
+    <div class="summary-label">Total Items</div>
+  </div>
+  <div class="summary-card plastic">
+    <div class="summary-value">{{ stats.plastic|default:"0" }}</div>
+    <div class="summary-label">Plastic</div>
+  </div>
+  <div class="summary-card paper">
+    <div class="summary-value">{{ stats.paper|default:"0" }}</div>
+    <div class="summary-label">Paper</div>
+  </div>
+  <div class="summary-card metal">
+    <div class="summary-value">{{ stats.metal|default:"0" }}</div>
+    <div class="summary-label">Metal</div>
+  </div>
+  <div class="summary-card glass">
+    <div class="summary-value">{{ stats.glass|default:"0" }}</div>
+    <div class="summary-label">Glass</div>
+  </div>
 </div>
 
 <!-- Filter Section -->
 <div class="filter-section">
-    <div class="filter-title">
-        <i class="bi bi-funnel me-2"></i>
-        Filter Records
+  <div class="filter-title">
+    <i class="fas fa-filter"></i>
+    Filter Records
+  </div>
+  <form method="GET" id="filterForm">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label class="filter-label">Waste Type</label>
+        <select name="type" class="filter-select">
+          <option value="">All Types</option>
+          <option
+            value="plastic"
+            {%
+            if
+            filters.type=""
+            ="plastic"
+            %}selected{%
+            endif
+            %}
+          >
+            Plastic
+          </option>
+          <option
+            value="paper"
+            {%
+            if
+            filters.type=""
+            ="paper"
+            %}selected{%
+            endif
+            %}
+          >
+            Paper
+          </option>
+          <option
+            value="metal"
+            {%
+            if
+            filters.type=""
+            ="metal"
+            %}selected{%
+            endif
+            %}
+          >
+            Metal
+          </option>
+          <option
+            value="glass"
+            {%
+            if
+            filters.type=""
+            ="glass"
+            %}selected{%
+            endif
+            %}
+          >
+            Glass
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">From Date</label>
+        <input
+          type="date"
+          name="from"
+          class="filter-input"
+          value="{{ filters.from }}"
+        />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">To Date</label>
+        <input
+          type="date"
+          name="to"
+          class="filter-input"
+          value="{{ filters.to }}"
+        />
+      </div>
     </div>
-    <form method="GET" id="filterForm">
-        <div class="filter-row">
-            <div class="filter-group">
-                <label class="filter-label">Waste Type</label>
-                <select name="type" class="filter-select">
-                    <option value="">All Types</option>
-                    <option value="plastic" {% if filters.type == 'plastic' %}selected{% endif %}>Plastic</option>
-                    <option value="paper" {% if filters.type == 'paper' %}selected{% endif %}>Paper</option>
-                    <option value="metal" {% if filters.type == 'metal' %}selected{% endif %}>Metal</option>
-                    <option value="glass" {% if filters.type == 'glass' %}selected{% endif %}>Glass</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">From Date</label>
-                <input type="date" name="from" class="filter-input" value="{{ filters.from }}">
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">To Date</label>
-                <input type="date" name="to" class="filter-input" value="{{ filters.to }}">
-            </div>
-        </div>
-        <div class="filter-buttons">
-            <button type="submit" class="btn-filter btn-apply">
-                <i class="bi bi-check-circle me-1"></i>
-                Apply Filters
-            </button>
-            <a href="{% url 'waste_history' %}" class="btn-filter btn-clear">
-                <i class="bi bi-x-circle me-1"></i>
-                Clear All
-            </a>
-        </div>
-    </form>
+    <div class="filter-buttons">
+      <button type="submit" class="btn-filter btn-apply">
+        <i class="fas fa-check-circle"></i>
+        Apply Filters
+      </button>
+      <a href="{% url 'waste_history' %}" class="btn-filter btn-clear">
+        <i class="fas fa-times-circle"></i>
+        Clear All
+      </a>
+    </div>
+  </form>
 </div>
 
 <!-- History Table -->
 <div class="history-table-container">
-    {% if records %}
-    <table class="history-table">
-        <thead>
-            <tr>
-                <th>Date & Time</th>
-                <th>Waste Type</th>
-                <th>Bin Location</th>
-                <th>Weight</th>
-                <th>Points Earned</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for record in records %}
-            <tr>
-                <td>
-                    <div style="font-weight: 600;">{{ record.disposed_at|date:"M d, Y" }}</div>
-                    <div style="font-size: 0.85rem; color: #95a5a6;">{{ record.disposed_at|time:"h:i A" }}</div>
-                </td>
-                <td>
-                    <span class="waste-badge badge-{{ record.waste_type|lower }}">
-                        {{ record.waste_type|title }}
-                    </span>
-                </td>
-                <td>
-                    {% if record.bin %}
-                        <div style="font-weight: 600;">{{ record.bin.name }}</div>
-                        <div class="bin-name">{{ record.bin.location_name }}</div>
-                    {% else %}
-                        <span style="color: #95a5a6;">Not specified</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if record.weight_kg %}
-                        {{ record.weight_kg }} kg
-                    {% else %}
-                        <span style="color: #95a5a6;">-</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <span class="points-badge">
-                        <i class="bi bi-award-fill"></i>
-                        +{{ record.points_earned }}
-                    </span>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-icon">
-            <i class="bi bi-inbox"></i>
-        </div>
-        <div class="empty-text">No Records Found</div>
-        <div class="empty-subtext">Start recycling today to see your history here!</div>
+  {% if records %}
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th>Date & Time</th>
+        <th>Waste Type</th>
+        <th>Bin Location</th>
+        <th>Weight</th>
+        <th>Points Earned</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in records %}
+      <tr>
+        <td>
+          <div style="font-weight: 600">
+            {{ record.disposed_at|date:"M d, Y" }}
+          </div>
+          <div style="font-size: 0.85rem; color: #95a5a6">
+            {{ record.disposed_at|time:"h:i A" }}
+          </div>
+        </td>
+        <td>
+          <span class="waste-badge badge-{{ record.waste_type|lower }}">
+            {{ record.waste_type|title }}
+          </span>
+        </td>
+        <td>
+          {% if record.bin %}
+          <div style="font-weight: 600">{{ record.bin.name }}</div>
+          <div class="bin-name">{{ record.bin.location_name }}</div>
+          {% else %}
+          <span style="color: #95a5a6">Not specified</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if record.weight_kg %} {{ record.weight_kg }} kg {% else %}
+          <span style="color: #95a5a6">-</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="points-badge">
+            <i class="fas fa-award"></i>
+            +{{ record.points_earned }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">
+      <i class="fas fa-inbox"></i>
     </div>
-    {% endif %}
+    <div class="empty-text">No Records Found</div>
+    <div class="empty-subtext">
+      Start recycling today to see your history here!
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
