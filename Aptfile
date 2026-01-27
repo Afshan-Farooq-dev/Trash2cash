@@ -1,9 +1,6 @@
-libgl1
+libgl1-mesa-glx
 libglib2.0-0
-zlib1g
+libsm6
+libxext6
+libxrender-dev
 libxcb1
-libxcb-render0
-libxcb-shm0
-libxcb-xfixes0
-libxcb-xkb1
-libxkbcommon-x11-0
