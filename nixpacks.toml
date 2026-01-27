@@ -5,7 +5,7 @@ nixPkgs = ["python312", "python312Packages.pip", "python312Packages.virtualenv",
 cmds = ["python -m venv /opt/venv", ". /opt/venv/bin/activate && pip install -r requirements.txt"]
 
 [phases.build]
-cmds = ["python manage.py collectstatic --noinput"]
+cmds = [". /opt/venv/bin/activate && python manage.py collectstatic --noinput"]
 
 [start]
-cmd = ". /opt/venv/bin/activate && python manage.py migrate && gunicorn Traffic.wsgi --bind 0.0.0.0:$PORT"
+cmd = "/opt/venv/bin/python manage.py migrate && /opt/venv/bin/gunicorn Traffic.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
