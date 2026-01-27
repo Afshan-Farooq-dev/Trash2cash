@@ -4,10 +4,8 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "/opt/venv/bin/python manage.py migrate && /opt/venv/bin/gunicorn Traffic.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-file - --access-logfile -",
+    "startCommand": "python manage.py migrate && gunicorn Traffic.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10,
-    "healthcheckPath": "/",
-    "healthcheckTimeout": 100
+    "restartPolicyMaxRetries": 10
   }
 }
